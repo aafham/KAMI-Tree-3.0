@@ -57,7 +57,7 @@
     unions = data.unions || [];
     peopleById = new Map(people.map(p => [p.id, p]));
     buildRelations(unions);
-    state.searchIndex = people.map(p => ({ id: p.id, name: (p.name || "").toLowerCase() }));
+    state.searchIndex = people.map(p => ({ id: p.id, name: normalizeName(p.name).toLowerCase() }));
     state.rootId = data.selfId || data.rootId || (people[0] ? people[0].id : null);
     state.selectedId = state.rootId;
     if (data.familyName) familyNameEl.textContent = data.familyName;
@@ -410,10 +410,11 @@
     const compactClass = state.settings.compactCards ? "compact" : "";
     const genderBadge = state.settings.showGender ? `<div class="gender ${genderClass}">${gender ? gender[0].toUpperCase() : "?"}</div>` : "";
     const selectedClass = person.id === state.selectedId ? "selected" : "";
+    const displayName = getDisplayName(person);
     return `
       <div class="node-card ${compactClass} ${selectedClass}" data-person-id="${person.id}">
         <div class="meta">
-          <div class="name">${person.name}</div>
+          <div class="name">${displayName}</div>
           ${years ? `<div class="years">${years}</div>` : ""}
         </div>
         ${genderBadge}
@@ -423,10 +424,48 @@
 
   function inferGender(person) {
     if (person.gender) return person.gender;
-    const name = (person.name || "").toLowerCase();
+    const name = normalizeName(person.name).toLowerCase();
     if (/\\bbinti\\b/.test(name)) return "female";
     if (/\\bbin\\b/.test(name)) return "male";
     return "unknown";
+  }
+
+  function normalizeName(name) {
+    const raw = (name || "").trim();
+    if (!raw) return "";
+    const words = raw.toLowerCase().split(/\\s+/);
+    return words.map(word => {
+      if (word === "bin" || word === "binti") return word;
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(" ");
+  }
+
+  function splitNameParts(name) {
+    const normalized = normalizeName(name);
+    const lower = normalized.toLowerCase();
+    if (lower.includes(" bin ")) {
+      const parts = normalized.split(/\\s+bin\\s+/i);
+      return { first: parts[0], last: parts.slice(1).join(" ") };
+    }
+    if (lower.includes(" binti ")) {
+      const parts = normalized.split(/\\s+binti\\s+/i);
+      return { first: parts[0], last: parts.slice(1).join(" ") };
+    }
+    const first = normalized.split(" ")[0] || normalized;
+    return { first, last: normalized };
+  }
+
+  function shareParent(aId, bId) {
+    const aParents = new Set(getParents(aId));
+    if (!aParents.size) return false;
+    return getParents(bId).some(pid => aParents.has(pid));
+  }
+
+  function getDisplayName(person) {
+    const parts = splitNameParts(person.name);
+    if (person.id === state.selectedId) return parts.first;
+    if (state.selectedId && shareParent(state.selectedId, person.id)) return parts.first;
+    return normalizeName(person.name);
   }
 
   function formatYear(value) {
@@ -552,7 +591,7 @@
     const matches = state.searchIndex.filter(p => p.name.includes(value)).slice(0, 8);
     searchResults.innerHTML = matches.map(m => {
       const person = peopleById.get(m.id);
-      const display = highlightMatch(person.name, value);
+      const display = highlightMatch(normalizeName(person.name), value);
       return `<div class="result" data-id="${m.id}"><span>${display}</span><span class="muted">${m.id}</span></div>`;
     }).join("");
     searchResults.classList.add("active");
