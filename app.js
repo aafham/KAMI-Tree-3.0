@@ -189,6 +189,7 @@
   // View state
   function setView(view) {
     state.view = view;
+    document.body.dataset.view = view;
     const focusBtn = el("focusModeBtn");
     if (view === "focus") {
       focusView.hidden = false;
@@ -251,6 +252,8 @@
 
   // Rendering
   function render() {
+    focusView.hidden = state.view !== "focus";
+    fullTreeView.hidden = state.view === "focus";
     if (!state.selectedId && state.view === "focus") {
       renderEmptyState();
       return;
