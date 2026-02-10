@@ -1132,6 +1132,12 @@
     }
   });
 
+  document.addEventListener("pointerdown", (e) => {
+    if (!moreMenu.hidden && !e.target.closest(".more")) {
+      closeMoreMenu();
+    }
+  }, true);
+
   // Search interactions
   searchInput.addEventListener("input", handleSearchInput);
   searchInput.addEventListener("keydown", (e) => {
