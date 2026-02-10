@@ -63,7 +63,10 @@
     if (data.familyName) familyNameEl.textContent = data.familyName;
     updateStats();
     applySettings();
-    setView(state.settings.defaultView);
+    state.settings.defaultView = "forest";
+    const defaultSelect = el("settingDefaultView");
+    if (defaultSelect) defaultSelect.value = "forest";
+    setView("forest");
     render();
     setTimeout(() => fitToScreen(), 50);
   }
@@ -353,22 +356,18 @@
     const nodeWrap = document.createElement("div");
     nodeWrap.className = "tree-node";
 
-    if (options.includeSpousesAtRoot && depth === 1) {
-      const familyRow = document.createElement("div");
-      familyRow.className = "tree-family";
-      familyRow.innerHTML = cardTemplate(person, true);
-      getSpouses(personId)
-        .map(id => peopleById.get(id))
-        .filter(Boolean)
-        .forEach(spouse => {
-          const wrapper = document.createElement("div");
-          wrapper.innerHTML = cardTemplate(spouse, true);
-          familyRow.appendChild(wrapper.firstElementChild);
-        });
-      nodeWrap.appendChild(familyRow);
-    } else {
-      nodeWrap.innerHTML = cardTemplate(person, true);
-    }
+    const familyRow = document.createElement("div");
+    familyRow.className = "tree-family";
+    familyRow.innerHTML = cardTemplate(person, true);
+    getSpouses(personId)
+      .map(id => peopleById.get(id))
+      .filter(Boolean)
+      .forEach(spouse => {
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = cardTemplate(spouse, true);
+        familyRow.appendChild(wrapper.firstElementChild);
+      });
+    nodeWrap.appendChild(familyRow);
 
     const children = getChildren(personId).map(id => peopleById.get(id)).filter(Boolean);
     if (children.length) {
@@ -913,8 +912,7 @@
   // Depth controls
   depthControls.querySelectorAll(".btn").forEach(btn => {
     btn.onclick = () => {
-      const depth = btn.dataset.depth;
-      state.fullTree.depth = depth === "all" ? "all" : Number(depth);
+      state.fullTree.depth = "all";
       render();
       requestAnimationFrame(() => fitToScreen());
     };
