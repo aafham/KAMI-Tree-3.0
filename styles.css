@@ -472,18 +472,16 @@ body {
 }
 
 .insights {
-  position: fixed;
-  right: 20px;
-  top: 120px;
+  position: static;
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 12px;
-  width: 200px;
+  padding: 10px;
+  width: 100%;
 }
-.insights.collapsed { width: 120px; }
+.insights.collapsed { width: 100%; }
 .insights-toggle { width: 100%; margin-bottom: 8px; }
-.insights-content { display: block; }
+.insights-content { display: grid; gap: 6px; }
 .stat { margin-bottom: 10px; }
 .stat-label { font-size: 12px; color: var(--muted); }
 .stat-value { font-size: 20px; font-weight: 600; }
@@ -706,15 +704,7 @@ body {
   .workspace { padding: 8px; }
   .focus-view { grid-template-columns: 1fr; grid-template-areas: "parents" "spouses" "center" "children" "actions"; }
   .focus-center { grid-column: 1; grid-row: auto; }
-  .insights {
-    position: fixed;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    top: auto;
-    width: 100%;
-    border-radius: 16px 16px 0 0;
-  }
+  .insights { position: static; border-radius: 12px; }
   .inspector {
     position: fixed;
     left: 0;

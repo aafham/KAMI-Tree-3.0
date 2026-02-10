@@ -101,26 +101,25 @@
             <button id="drawerFocus" class="btn" data-action="drawer-focus">Focus this person</button>
           </div>
         </div>
+        <section id="insights" class="insights panel" aria-label="Insights panel">
+          <button id="insightsToggle" class="insights-toggle btn" aria-expanded="true">Insights</button>
+          <div class="insights-content" id="insightsContent">
+            <div class="stat">
+              <div class="stat-label">People</div>
+              <div class="stat-value" id="statPeople">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Families</div>
+              <div class="stat-value" id="statFamilies">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Descendant depth</div>
+              <div class="stat-value" id="statGenerations">0</div>
+            </div>
+          </div>
+        </section>
       </aside>
     </main>
-
-    <aside id="insights" class="insights" aria-label="Insights panel">
-      <button id="insightsToggle" class="insights-toggle btn" aria-expanded="true">Insights</button>
-      <div class="insights-content" id="insightsContent">
-        <div class="stat">
-          <div class="stat-label">People</div>
-          <div class="stat-value" id="statPeople">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Families</div>
-          <div class="stat-value" id="statFamilies">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Descendant depth</div>
-          <div class="stat-value" id="statGenerations">0</div>
-        </div>
-      </div>
-    </aside>
 
     <div id="legend" class="legend" aria-label="Legend">
       <span class="legend-item"><span class="dot dot-male"></span>Male</span>
