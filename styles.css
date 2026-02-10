@@ -197,6 +197,16 @@ body {
   gap: 10px;
   align-items: center;
 }
+.tree-family .node-card { position: relative; }
+.tree-family .node-card:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  width: 12px;
+  height: 2px;
+  background: rgba(0,0,0,0.18);
+}
 
 .tree-level {
   display: flex;
@@ -223,7 +233,8 @@ body {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0,0,0,0.18);
+  border-radius: 6px;
 }
 .tree-child {
   position: relative;
@@ -236,7 +247,20 @@ body {
   top: 50%;
   width: 18px;
   height: 2px;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0,0,0,0.18);
+  border-radius: 6px;
+}
+.node-toggle {
+  margin-left: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
 }
 
 .minimap {

@@ -6,7 +6,7 @@
     selectedId: null,
     rootId: null,
     focusExpand: { ancestors: 1, children: {}, showAllChildren: false },
-    fullTree: { depth: 2, expanded: new Set(), branchOnly: false },
+    fullTree: { depth: 2, expanded: new Set(), collapsed: new Set(), branchOnly: false },
     searchIndex: [],
     pan: { x: 0, y: 0, zoom: 1 },
     drawerOpen: false,
@@ -369,13 +369,21 @@
     } else {
       nodeWrap.innerHTML = cardTemplate(person, true);
     }
+    if (children.length) {
+      const toggleBtn = document.createElement("button");
+      toggleBtn.className = "node-toggle";
+      toggleBtn.setAttribute("data-toggle-node", personId);
+      toggleBtn.textContent = state.fullTree.collapsed.has(personId) ? "+" : "−";
+      nodeWrap.appendChild(toggleBtn);
+    }
     node.appendChild(nodeWrap);
 
     const children = getChildren(personId).map(id => peopleById.get(id)).filter(Boolean);
     if (!children.length) return node;
 
     const branchOnly = state.view === "branch" && state.fullTree.branchOnly && personId !== state.selectedId;
-    const isExpanded = state.view === "branch" ? (state.fullTree.expanded.has(personId) || depth < depthLimit) : true;
+    const isCollapsed = state.fullTree.collapsed.has(personId);
+    const isExpanded = !isCollapsed;
     if (!isExpanded || branchOnly) return node;
 
     const childWrap = document.createElement("div");
@@ -685,6 +693,18 @@
     if (expandBtn) {
       const id = expandBtn.getAttribute("data-expand-child");
       state.focusExpand.children[id] = !state.focusExpand.children[id];
+      render();
+      return;
+    }
+
+    const nodeToggle = target.closest("[data-toggle-node]");
+    if (nodeToggle) {
+      const id = nodeToggle.getAttribute("data-toggle-node");
+      if (state.fullTree.collapsed.has(id)) {
+        state.fullTree.collapsed.delete(id);
+      } else {
+        state.fullTree.collapsed.add(id);
+      }
       render();
       return;
     }
