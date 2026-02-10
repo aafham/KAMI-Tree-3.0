@@ -1,34 +1,75 @@
-﻿# KAMI Tree 3.0
+# KAMI Tree 3.0
 
-## Family Generation View (Refactor)
+## Ringkas
+Website ini ialah **Family Tree Viewer** untuk paparkan salasilah keluarga dalam beberapa mod paparan supaya senang difahami walaupun data besar.
 
-This prototype introduces a dual-mode architecture:
+## Apa yang website ini buat
+- Papar **semua keluarga** (All Families / Forest) dalam satu kanvas.
+- Papar **satu cabang** (Branch) untuk fokus pada satu keluarga.
+- Papar **satu individu** (Focus) lengkap dengan parents/spouses/children.
+- Boleh **search**, **pan/zoom**, **fit to screen**, dan **highlight path**.
+- Klik kad untuk buka detail, kemudian **Focus this person** untuk terus ke Branch view.
 
-- Focus Mode (default): centered person with parents, spouses, and children. Only 1-2 levels are shown by default with expansion controls.
-- Full Tree Mode: vertical descendant layout with lazy branch expansion and generation controls.
+## Mod Paparan
+1. **All Families (Forest)**
+   - Cari semua root (tiada parents).
+   - Semua root dipaparkan dalam satu kanvas.
+   - Layout kiri → kanan, dengan connector line.
+   - Depth boleh pilih: 1 / 2 / 3 / All.
 
-Key components:
+2. **Branch**
+   - Fokus pada satu root sahaja.
+   - Layout kiri → kanan, connector line jelas.
+   - Depth boleh pilih dan setiap node boleh collapse/expand.
 
-- `app.js`: View state, data layer, focus rendering, full tree rendering, pan/zoom, search jump + highlight.
-- `styles.css`: Compact toolbar, responsive focus layout, drawer/bottom sheet styles, and legend.
-- `data.json`: Family data source with `selfId`, `people`, and `unions`. Relationships are derived from unions.
+3. **Focus**
+   - Satu individu di tengah.
+   - Parents (atas), Spouses (tepi), Children (bawah).
+   - Sesuai untuk review detail individu.
 
-Performance notes:
+## Cara guna
+- **Klik kad** → buka drawer detail.
+- Dalam drawer, klik **Focus this person** → pindah ke Branch view.
+- **Search** → lompat ke orang tersebut + highlight path.
+- **Pan/zoom**: drag untuk pan, scroll untuk zoom.
+- **Fit**: auto zoom supaya semua node yang dirender muat dalam skrin.
 
-- Full tree only renders expanded branches.
-- Focus mode limits children to 4 with a "+X more" action.
-- Pan/zoom is throttled.
+## Data & Struktur
+Fail utama:
+- `index.html` – struktur UI.
+- `styles.css` – layout, warna, dan connector line.
+- `app.js` – logik data, rendering, interaksi.
+- `data.json` – data keluarga.
 
-Usage:
+## Format data (data.json)
+```json
+{
+  "familyName": "Nama Keluarga",
+  "dataVersion": "2026-02-09",
+  "selfId": "p16",
+  "people": [
+    {
+      "id": "p1",
+      "name": "Aishah binti Ahmad",
+      "birth": "1936-07-19",
+      "death": "",
+      "relation": "Tok",
+      "note": "",
+      "photo": ""
+    }
+  ],
+  "unions": [
+    {
+      "id": "u1",
+      "partner1": "p1",
+      "partner2": "p2",
+      "children": ["p3", "p4"]
+    }
+  ]
+}
+```
 
-Open `index.html` in a browser.
-
-### Data schema (expected)
-
-`data.json` should include:
-
-- `familyName`: Optional title.
-- `dataVersion`: Optional version string.
-- `selfId`: Default person to center on load.
-- `people`: Array of `{ id, name, birth, death, relation, note, photo }`.
-- `unions`: Array of `{ id, partner1, partner2, children: [personId...] }`.
+## Notis
+- Nama dipaparkan sebagai **first name sahaja**.
+- Tarikh lahir & umur dipaparkan di bawah nama pada setiap card.
+- Sistem guna tarikh rujukan **10 Feb 2026** untuk kira umur jika tiada tarikh kematian.
