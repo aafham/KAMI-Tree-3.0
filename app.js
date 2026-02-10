@@ -6,6 +6,7 @@
     selectedId: null,
     rootId: null,
     treeMode: "tree",
+    inspectorCollapsed: false,
     focusExpand: { ancestors: 1, children: {}, showAllChildren: false },
     fullTree: { depth: 2, expanded: new Set(), collapsed: new Set(), branchOnly: false },
     searchIndex: [],
@@ -42,6 +43,8 @@
   const searchBackdrop = el("searchBackdrop");
   const viewSubtitle = el("viewSubtitle");
   const drawer = el("detailDrawer");
+  const inspector = el("inspector");
+  const inspectorToggle = el("inspectorToggle");
   const drawerContent = el("drawerContent");
   const drawerTitle = el("drawerTitle");
   const breadcrumbs = el("breadcrumbs");
@@ -80,6 +83,8 @@
     if (defaultSelect) defaultSelect.value = "forest";
     setView("forest");
     render();
+    renderInspectorEmpty();
+    setInspectorCollapsed(false);
     setTimeout(() => fitToScreen(), 50);
   }
 
@@ -264,6 +269,23 @@
     }
   }
 
+  function setInspectorCollapsed(collapsed) {
+    state.inspectorCollapsed = collapsed;
+    if (collapsed) {
+      inspector.classList.add("collapsed");
+      inspectorToggle.textContent = "Expand";
+    } else {
+      inspector.classList.remove("collapsed");
+      inspectorToggle.textContent = "Collapse";
+    }
+  }
+
+  function renderInspectorEmpty() {
+    drawerTitle.textContent = "No selection";
+    drawerContent.innerHTML = `<div class="muted">Select a person to see details.</div>`;
+    drawer.setAttribute("aria-hidden", "true");
+  }
+
   function renderEmptyState() {
     focusView.innerHTML = `
       <div class="empty-state">
@@ -295,20 +317,20 @@
     }
 
     focusView.innerHTML = `
-      <div class="focus-section" style="grid-column: 2; grid-row: 1;">
+      <div class="focus-section focus-parents">
         <h3>Parents</h3>
         <div class="focus-grid" id="parentsGrid"></div>
         <div id="grandparentsBlock"></div>
         <button class="btn" data-action="toggle-ancestors">${state.focusExpand.ancestors === 1 ? "Expand ancestors" : "Collapse ancestors"}</button>
       </div>
-      <div class="focus-section scrollable" style="grid-column: 1; grid-row: 2;">
+      <div class="focus-section focus-spouses scrollable">
         <h3>Spouses</h3>
         <div class="focus-grid" id="spousesGrid"></div>
       </div>
-      <div class="focus-center">
+      <div class="focus-center focus-selected">
         <div id="centerCard"></div>
       </div>
-      <div class="focus-section" style="grid-column: 3; grid-row: 2;">
+      <div class="focus-section focus-actions">
         <h3>Actions</h3>
         <div class="focus-grid">
           <button class="btn" data-action="set-root">Set as Root</button>
@@ -316,9 +338,9 @@
           <button class="btn" data-action="copy-id">Copy ID</button>
         </div>
       </div>
-      <div class="focus-section scrollable" style="grid-column: 2; grid-row: 3;">
+      <div class="focus-section focus-children">
         <h3>Children</h3>
-        <div class="focus-grid" id="childrenGrid"></div>
+        <div class="focus-grid focus-row-horizontal" id="childrenGrid"></div>
         ${remaining > 0 ? `<button class="btn" data-action="more-children">+${remaining} more</button>` : ""}
       </div>
     `;
@@ -614,7 +636,7 @@
     const person = peopleById.get(id);
     if (!person) return;
     state.drawerOpen = true;
-    drawer.classList.add("active");
+    setInspectorCollapsed(false);
     drawer.setAttribute("aria-hidden", "false");
     drawerTitle.textContent = person.name;
     const parentIds = getParents(person.id);
@@ -631,14 +653,12 @@
     el("drawerGoTo").onclick = () => {
       centerOn(id);
       highlightPath(id);
-      closeDrawer();
     };
   }
 
   function closeDrawer() {
     state.drawerOpen = false;
-    drawer.classList.remove("active");
-    drawer.setAttribute("aria-hidden", "true");
+    renderInspectorEmpty();
   }
 
   // Actions
@@ -1087,6 +1107,9 @@
     if (!action) return;
 
     switch (action) {
+      case "inspector-toggle":
+        setInspectorCollapsed(!state.inspectorCollapsed);
+        break;
       case "center":
         centerOn(state.selectedId || state.rootId);
         break;

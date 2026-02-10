@@ -49,40 +49,59 @@
     </header>
     <div id="searchBackdrop" class="search-backdrop hidden" data-action="search-close"></div>
 
-    <main class="content" role="main">
-      <section id="focusView" class="view focus-view" aria-label="Focus view"></section>
-      <section id="fullTreeView" class="view full-tree-view" aria-label="Tree view" hidden>
-        <div class="full-tree-controls">
-          <div class="breadcrumbs" id="breadcrumbs" aria-label="Breadcrumbs"></div>
-          <div class="view-toggle-inline" role="tablist" aria-label="Map view toggle">
-            <button id="treeViewBtn" class="btn active" role="tab" aria-selected="true" data-action="view-tree">Tree</button>
-            <button id="timelineViewBtn" class="btn" role="tab" aria-selected="false" data-action="view-timeline">Timeline</button>
+    <main class="workspace" role="main">
+      <section class="canvas-area">
+        <section id="focusView" class="view focus-view" aria-label="Focus view"></section>
+        <section id="fullTreeView" class="view full-tree-view" aria-label="Tree view" hidden>
+          <div class="full-tree-controls">
+            <div class="breadcrumbs" id="breadcrumbs" aria-label="Breadcrumbs"></div>
+            <div class="view-toggle-inline" role="tablist" aria-label="Map view toggle">
+              <button id="treeViewBtn" class="btn active" role="tab" aria-selected="true" data-action="view-tree">Tree</button>
+              <button id="timelineViewBtn" class="btn" role="tab" aria-selected="false" data-action="view-timeline">Timeline</button>
+            </div>
+            <div class="generation-controls" role="group" aria-label="Depth controls">
+              <button class="btn" data-depth="all">All</button>
+            </div>
+            <div class="branch-controls">
+              <button id="expandBranchBtn" class="btn" data-action="expand-branch">Expand branch</button>
+              <button id="collapseBranchBtn" class="btn" data-action="collapse-branch">Collapse branch</button>
+            </div>
+            <button id="minimapToggle" class="btn" data-action="minimap">Minimap</button>
           </div>
-          <div class="generation-controls" role="group" aria-label="Depth controls">
-            <button class="btn" data-depth="all">All</button>
+          <div class="full-tree-canvas" id="fullTreeCanvas">
+            <div class="tree-stage-outer">
+              <div class="tree-stage" id="treeStage" aria-live="polite"></div>
+            </div>
           </div>
-          <div class="branch-controls">
-            <button id="expandBranchBtn" class="btn" data-action="expand-branch">Expand branch</button>
-            <button id="collapseBranchBtn" class="btn" data-action="collapse-branch">Collapse branch</button>
+          <div id="timelinePanel" class="timeline-panel" hidden>
+            <div id="timelineList" class="timeline-list"></div>
           </div>
-          <button id="minimapToggle" class="btn" data-action="minimap">Minimap</button>
-        </div>
-        <div class="full-tree-canvas" id="fullTreeCanvas">
-          <div class="tree-stage-outer">
-            <div class="tree-stage" id="treeStage" aria-live="polite"></div>
+          <div id="minimap" class="minimap" hidden>
+            <div class="minimap-header">Minimap</div>
+            <div class="minimap-body">
+              <div id="minimapContent" class="minimap-content"></div>
+              <div id="minimapViewport" class="minimap-viewport"></div>
+            </div>
           </div>
-        </div>
-        <div id="timelinePanel" class="timeline-panel" hidden>
-          <div id="timelineList" class="timeline-list"></div>
-        </div>
-        <div id="minimap" class="minimap" hidden>
-          <div class="minimap-header">Minimap</div>
-          <div class="minimap-body">
-            <div id="minimapContent" class="minimap-content"></div>
-            <div id="minimapViewport" class="minimap-viewport"></div>
-          </div>
-        </div>
+        </section>
       </section>
+      <aside class="inspector" id="inspector" aria-label="Inspector panel">
+        <div class="inspector-header">
+          <div class="inspector-title">Inspector</div>
+          <button id="inspectorToggle" class="btn secondary" data-action="inspector-toggle">Collapse</button>
+        </div>
+        <div id="detailDrawer" class="drawer inspector-drawer" role="region" aria-label="Person details" aria-hidden="true">
+          <div class="drawer-header">
+            <div id="drawerTitle" class="drawer-title">Person</div>
+            <button id="drawerClose" class="btn" data-action="drawer-close">Clear</button>
+          </div>
+          <div id="drawerContent" class="drawer-content"></div>
+          <div class="drawer-footer">
+            <button id="drawerGoTo" class="btn" data-action="drawer-center">Go to / Center here</button>
+            <button id="drawerFocus" class="btn" data-action="drawer-focus">Focus this person</button>
+          </div>
+        </div>
+      </aside>
     </main>
 
     <aside id="insights" class="insights" aria-label="Insights panel">
@@ -109,31 +128,37 @@
       <span class="legend-item"><span class="dot dot-unknown"></span>Unknown</span>
     </div>
 
-    <div id="detailDrawer" class="drawer" role="dialog" aria-modal="true" aria-hidden="true">
-      <div class="drawer-header">
-        <div id="drawerTitle" class="drawer-title">Person</div>
-        <button id="drawerClose" class="btn" data-action="drawer-close">Close</button>
-      </div>
-      <div id="drawerContent" class="drawer-content"></div>
-      <div class="drawer-footer">
-        <button id="drawerGoTo" class="btn" data-action="drawer-center">Go to / Center here</button>
-        <button id="drawerFocus" class="btn" data-action="drawer-focus">Focus this person</button>
-      </div>
-    </div>
-
     <div id="settingsModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
       <div class="modal-card">
         <div class="modal-header">
           <div class="modal-title">Settings</div>
           <button class="btn" data-action="settings-close">Close</button>
         </div>
-        <div class="modal-body">
-          <label class="toggle"><input type="checkbox" id="settingShowYears" checked />Show years</label>
-          <label class="toggle"><input type="checkbox" id="settingCompactCards" />Compact cards</label>
-          <label class="toggle"><input type="checkbox" id="settingShowGender" checked />Show gender badge</label>
-          <label class="toggle"><input type="checkbox" id="settingReduceMotion" />Reduce motion</label>
-          <label class="toggle"><input type="checkbox" id="settingShowDeceased" checked />Show deceased</label>
-          <label class="toggle"><input type="checkbox" id="settingDirectLine" />Show only direct line (Branch)</label>
+        <div class="modal-body settings-list">
+          <label class="toggle-row">
+            <span class="toggle-text">Show years</span>
+            <input type="checkbox" id="settingShowYears" checked />
+          </label>
+          <label class="toggle-row">
+            <span class="toggle-text">Compact cards</span>
+            <input type="checkbox" id="settingCompactCards" />
+          </label>
+          <label class="toggle-row">
+            <span class="toggle-text">Show gender badge</span>
+            <input type="checkbox" id="settingShowGender" checked />
+          </label>
+          <label class="toggle-row">
+            <span class="toggle-text">Reduce motion</span>
+            <input type="checkbox" id="settingReduceMotion" />
+          </label>
+          <label class="toggle-row">
+            <span class="toggle-text">Show deceased</span>
+            <input type="checkbox" id="settingShowDeceased" checked />
+          </label>
+          <label class="toggle-row">
+            <span class="toggle-text">Show only direct line (Branch)</span>
+            <input type="checkbox" id="settingDirectLine" />
+          </label>
           <div class="setting-row">
             <span>Default view</span>
             <select id="settingDefaultView">
