@@ -19,8 +19,9 @@
           <div id="searchResults" class="search-results" role="listbox" aria-label="Search results"></div>
         </div>
         <div class="view-toggle" role="group" aria-label="View toggle">
-          <button id="focusModeBtn" class="btn active" aria-pressed="true">Focus</button>
-          <button id="fullTreeBtn" class="btn" aria-pressed="false">Full Tree</button>
+          <button id="forestModeBtn" class="btn active" aria-pressed="true">All Families</button>
+          <button id="branchModeBtn" class="btn" aria-pressed="false">Branch</button>
+          <button id="focusModeBtn" class="btn" aria-pressed="false">Focus</button>
         </div>
       </div>
       <div class="toolbar-right">
@@ -33,14 +34,14 @@
 
     <main class="content" role="main">
       <section id="focusView" class="view focus-view" aria-label="Focus view"></section>
-      <section id="fullTreeView" class="view full-tree-view" aria-label="Full tree view" hidden>
+      <section id="fullTreeView" class="view full-tree-view" aria-label="Tree view" hidden>
         <div class="full-tree-controls">
           <div class="breadcrumbs" id="breadcrumbs" aria-label="Breadcrumbs"></div>
-          <div class="generation-controls" role="group" aria-label="Generation controls">
-            <button class="btn" data-gen="1">Gen 1</button>
-            <button class="btn" data-gen="2">Gen 2</button>
-            <button class="btn" data-gen="3">Gen 3</button>
-            <button class="btn" data-gen="branch">Branch only</button>
+          <div class="generation-controls" role="group" aria-label="Depth controls">
+            <button class="btn" data-depth="1">Depth 1</button>
+            <button class="btn" data-depth="2">Depth 2</button>
+            <button class="btn" data-depth="3">Depth 3</button>
+            <button class="btn" data-depth="all">All</button>
           </div>
           <div class="branch-controls">
             <button id="expandBranchBtn" class="btn" data-action="expand-branch">Expand branch</button>
@@ -92,6 +93,7 @@
       <div id="drawerContent" class="drawer-content"></div>
       <div class="drawer-footer">
         <button id="drawerGoTo" class="btn" data-action="drawer-center">Go to / Center here</button>
+        <button id="drawerFocus" class="btn" data-action="drawer-focus">Focus this person</button>
       </div>
     </div>
 
@@ -109,8 +111,9 @@
           <div class="setting-row">
             <span>Default view</span>
             <select id="settingDefaultView">
+              <option value="forest">All Families</option>
+              <option value="branch">Branch</option>
               <option value="focus">Focus</option>
-              <option value="full">Full Tree</option>
             </select>
           </div>
         </div>

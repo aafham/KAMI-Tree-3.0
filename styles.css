@@ -60,6 +60,7 @@ body {
 }
 .btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+.hidden { display: none; }
 
 .search { position: relative; }
 .search input {
@@ -139,6 +140,7 @@ body {
 .node-card .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .node-card .years { font-size: 12px; color: var(--muted); }
 .node-card .gender { font-size: 12px; padding: 4px 8px; border-radius: 999px; background: rgba(0,0,0,0.05); }
+.node-card.selected { outline: 2px solid var(--accent-2); }
 
 .gender-male { color: var(--male); }
 .gender-female { color: var(--female); }
@@ -174,6 +176,28 @@ body {
   will-change: transform;
 }
 
+.forest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 28px;
+  padding: 10px;
+}
+
+.tree-subtree {
+  background: rgba(43,108,127,0.04);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+}
+
+.tree-family {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+}
+
 .tree-level {
   display: flex;
   flex-direction: column;
@@ -181,6 +205,7 @@ body {
   gap: 18px;
   position: relative;
 }
+.tree-level.spouse-root::after { display: none; }
 .tree-level::after {
   content: "";
   position: absolute;

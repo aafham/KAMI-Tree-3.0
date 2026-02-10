@@ -2,11 +2,11 @@
   "use strict";
 
   const state = {
-    view: "focus",
+    view: "forest",
     selectedId: null,
     rootId: null,
     focusExpand: { ancestors: 1, children: {}, showAllChildren: false },
-    fullTree: { gen: 2, expanded: new Set(), branchOnly: false },
+    fullTree: { depth: 2, expanded: new Set(), branchOnly: false },
     searchIndex: [],
     pan: { x: 0, y: 0, zoom: 1 },
     drawerOpen: false,
@@ -15,7 +15,7 @@
       compactCards: false,
       showGender: true,
       reduceMotion: false,
-      defaultView: "focus",
+      defaultView: "forest",
       autoOpenDrawer: false,
     },
   };
@@ -28,6 +28,11 @@
   const searchResults = el("searchResults");
   const treeStage = el("treeStage");
   const fullTreeCanvas = el("fullTreeCanvas");
+  const treeStageOuter = fullTreeCanvas.querySelector(".tree-stage-outer");
+  const forestModeBtn = el("forestModeBtn");
+  const branchModeBtn = el("branchModeBtn");
+  const branchControls = fullTreeView.querySelector(".branch-controls");
+  const depthControls = fullTreeView.querySelector(".generation-controls");
   const drawer = el("detailDrawer");
   const drawerContent = el("drawerContent");
   const drawerTitle = el("drawerTitle");
@@ -92,6 +97,7 @@
   const getParents = (id) => Array.from(parentsMap.get(id) || []);
   const getSpouses = (id) => Array.from(spousesMap.get(id) || []);
   const getChildren = (id) => Array.from(childrenMap.get(id) || []);
+  const getRoots = () => people.filter(p => getParents(p.id).length === 0).map(p => p.id);
 
   function updateStats() {
     el("statPeople").textContent = people.length;
@@ -118,21 +124,49 @@
   function setView(view) {
     state.view = view;
     const focusBtn = el("focusModeBtn");
-    const fullBtn = el("fullTreeBtn");
     if (view === "focus") {
       focusView.hidden = false;
       fullTreeView.hidden = true;
       focusBtn.classList.add("active");
-      fullBtn.classList.remove("active");
+      forestModeBtn.classList.remove("active");
+      branchModeBtn.classList.remove("active");
       focusBtn.setAttribute("aria-pressed", "true");
-      fullBtn.setAttribute("aria-pressed", "false");
+      forestModeBtn.setAttribute("aria-pressed", "false");
+      branchModeBtn.setAttribute("aria-pressed", "false");
     } else {
       focusView.hidden = true;
       fullTreeView.hidden = false;
       focusBtn.classList.remove("active");
-      fullBtn.classList.add("active");
+      if (view === "forest") {
+        forestModeBtn.classList.add("active");
+        branchModeBtn.classList.remove("active");
+        forestModeBtn.setAttribute("aria-pressed", "true");
+        branchModeBtn.setAttribute("aria-pressed", "false");
+      } else {
+        forestModeBtn.classList.remove("active");
+        branchModeBtn.classList.add("active");
+        forestModeBtn.setAttribute("aria-pressed", "false");
+        branchModeBtn.setAttribute("aria-pressed", "true");
+      }
       focusBtn.setAttribute("aria-pressed", "false");
-      fullBtn.setAttribute("aria-pressed", "true");
+    }
+
+    const isBranch = view === "branch";
+    breadcrumbs.classList.toggle("hidden", !isBranch);
+    branchControls.classList.toggle("hidden", !isBranch);
+    setStageAnchor(view);
+  }
+
+  function setStageAnchor(view) {
+    if (!treeStageOuter) return;
+    if (view === "forest") {
+      treeStageOuter.style.top = "0";
+      treeStageOuter.style.left = "0";
+      treeStageOuter.style.transform = "translate(0, 0)";
+    } else {
+      treeStageOuter.style.top = "50%";
+      treeStageOuter.style.left = "50%";
+      treeStageOuter.style.transform = "translate(-50%, -50%)";
     }
   }
 
@@ -144,9 +178,13 @@
     }
     if (state.view === "focus") {
       renderFocus();
-    } else {
-      renderFullTree();
+      return;
     }
+    if (state.view === "forest") {
+      renderForest();
+      return;
+    }
+    renderBranchTree();
   }
 
   function renderEmptyState() {
@@ -197,7 +235,7 @@
         <h3>Actions</h3>
         <div class="focus-grid">
           <button class="btn" data-action="set-root">Set as Root</button>
-          <button class="btn" data-action="view-full">View in Full Tree</button>
+          <button class="btn" data-action="view-full">View in Branch</button>
           <button class="btn" data-action="copy-id">Copy ID</button>
         </div>
       </div>
@@ -238,7 +276,7 @@
           <h3>Actions</h3>
           <div class="focus-grid">
             <button class="btn" data-action="set-root">Set as Root</button>
-            <button class="btn" data-action="view-full">View in Full Tree</button>
+            <button class="btn" data-action="view-full">View in Branch</button>
             <button class="btn" data-action="copy-id">Copy ID</button>
           </div>
         </div>
@@ -274,36 +312,72 @@
     return { html };
   }
 
-  function renderFullTree() {
+  function renderForest() {
+    treeStage.innerHTML = "";
+    const roots = getRoots();
+    const forestGrid = document.createElement("div");
+    forestGrid.className = "forest-grid";
+    roots.forEach(rootId => {
+      const subtree = document.createElement("div");
+      subtree.className = "tree-subtree";
+      subtree.appendChild(buildTreeNode(rootId, 1, { includeSpousesAtRoot: true }));
+      forestGrid.appendChild(subtree);
+    });
+    treeStage.appendChild(forestGrid);
+    applyPanZoom();
+    updateBreadcrumbs();
+  }
+
+  function renderBranchTree() {
     const root = peopleById.get(state.rootId);
     if (!root) return;
     treeStage.innerHTML = "";
-    const tree = buildTreeNode(root.id, 1);
+    const tree = buildTreeNode(root.id, 1, { includeSpousesAtRoot: true });
     treeStage.appendChild(tree);
     applyPanZoom();
     updateBreadcrumbs();
   }
 
-  function buildTreeNode(personId, depth) {
+  function buildTreeNode(personId, depth, options = {}) {
     const person = peopleById.get(personId);
     const node = document.createElement("div");
     node.className = "tree-level";
     node.dataset.personId = personId;
-    node.innerHTML = cardTemplate(person, true);
 
-    if (!person || depth > state.fullTree.gen) return node;
+    if (!person) return node;
+
+    const depthLimit = state.fullTree.depth === "all" ? Infinity : state.fullTree.depth;
+    if (depth > depthLimit) return node;
+
+    if (options.includeSpousesAtRoot && depth === 1) {
+      node.classList.add("spouse-root");
+      const familyRow = document.createElement("div");
+      familyRow.className = "tree-family";
+      familyRow.innerHTML = cardTemplate(person, true);
+      getSpouses(personId)
+        .map(id => peopleById.get(id))
+        .filter(Boolean)
+        .forEach(spouse => {
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = cardTemplate(spouse, true);
+          familyRow.appendChild(wrapper.firstElementChild);
+        });
+      node.appendChild(familyRow);
+    } else {
+      node.innerHTML = cardTemplate(person, true);
+    }
 
     const children = getChildren(personId).map(id => peopleById.get(id)).filter(Boolean);
     if (!children.length) return node;
 
-    const branchOnly = state.fullTree.branchOnly && personId !== state.selectedId;
-    const isExpanded = state.fullTree.expanded.has(personId) || depth < state.fullTree.gen;
+    const branchOnly = state.view === "branch" && state.fullTree.branchOnly && personId !== state.selectedId;
+    const isExpanded = state.view === "branch" ? (state.fullTree.expanded.has(personId) || depth < depthLimit) : true;
     if (!isExpanded || branchOnly) return node;
 
     const childWrap = document.createElement("div");
     childWrap.className = "tree-children";
     children.forEach(child => {
-      childWrap.appendChild(buildTreeNode(child.id, depth + 1));
+      childWrap.appendChild(buildTreeNode(child.id, depth + 1, options));
     });
     node.appendChild(childWrap);
     return node;
@@ -315,12 +389,13 @@
     const gender = inferGender(person);
     const genderClass = gender === "male" ? "gender-male" : gender === "female" ? "gender-female" : "gender-unknown";
     const years = state.settings.showYears && (formatYear(person.birth) || formatYear(person.death))
-      ? `${formatYear(person.birth) || "?"}–${formatYear(person.death) || "?"}`
+      ? `${formatYear(person.birth) || "?"}-${formatYear(person.death) || "?"}`
       : "";
     const compactClass = state.settings.compactCards ? "compact" : "";
     const genderBadge = state.settings.showGender ? `<div class="gender ${genderClass}">${gender ? gender[0].toUpperCase() : "?"}</div>` : "";
+    const selectedClass = person.id === state.selectedId ? "selected" : "";
     return `
-      <div class="node-card ${compactClass}" data-person-id="${person.id}">
+      <div class="node-card ${compactClass} ${selectedClass}" data-person-id="${person.id}">
         <div class="meta">
           <div class="name">${person.name}</div>
           ${years ? `<div class="years">${years}</div>` : ""}
@@ -379,11 +454,17 @@
   // Actions
   function centerOn(id) {
     state.selectedId = id;
-    state.rootId = id;
+    if (state.view !== "forest") state.rootId = id;
     render();
-    if (state.view === "full") {
+    if (state.view !== "focus") {
       resetPanZoom();
-      requestAnimationFrame(() => fitToScreen());
+      requestAnimationFrame(() => {
+        if (state.view === "forest") {
+          centerNodeInCanvas(id);
+        } else {
+          fitToScreen();
+        }
+      });
     }
   }
 
@@ -403,12 +484,14 @@
   }
 
   function updateBreadcrumbs() {
-    const crumbs = getPathToRoot(state.selectedId || state.rootId).reverse();
+    const targetId = state.selectedId || state.rootId;
+    const rootId = state.view === "forest" ? findTopRootId(targetId) : state.rootId;
+    const crumbs = getPathToRoot(targetId, rootId).reverse();
     breadcrumbs.textContent = crumbs.map(p => p.name).join(" > ") || "";
   }
 
-  function getPathToRoot(id) {
-    const rootId = state.rootId;
+  function getPathToRoot(id, explicitRootId) {
+    const rootId = explicitRootId || state.rootId;
     if (!id || !rootId) return [];
 
     const visited = new Set();
@@ -429,6 +512,16 @@
     if (!start) return [];
     const path = dfs(id, [start]);
     return path || [start];
+  }
+
+  function findTopRootId(id) {
+    let current = id;
+    let parentIds = getParents(current);
+    while (parentIds.length) {
+      current = parentIds[0];
+      parentIds = getParents(current);
+    }
+    return current;
   }
 
   // Search
@@ -465,22 +558,31 @@
 
   function jumpToPerson(id) {
     state.selectedId = id;
-    state.rootId = id;
+    if (state.view !== "forest") state.rootId = id;
     render();
     highlightPath(id);
     if (state.settings.autoOpenDrawer) openDrawer(id);
-    if (state.view === "full") {
+    if (state.view !== "focus") {
       resetPanZoom();
-      requestAnimationFrame(() => fitToScreen());
+      requestAnimationFrame(() => {
+        if (state.view === "forest") {
+          centerNodeInCanvas(id);
+        } else {
+          fitToScreen();
+        }
+      });
     }
   }
 
   function highlightPath(id) {
-    const path = getPathToRoot(id).map(p => p.id);
+    const rootId = state.view === "forest" ? findTopRootId(id) : state.rootId;
+    const path = getPathToRoot(id, rootId).map(p => p.id);
     document.querySelectorAll(".node-card").forEach(card => {
       const isPath = path.includes(card.dataset.personId);
+      const isSelected = card.dataset.personId === id;
       card.classList.toggle("highlight", isPath);
       card.classList.toggle("dim", !isPath);
+      card.classList.toggle("selected", isSelected);
     });
     setTimeout(() => {
       document.querySelectorAll(".node-card").forEach(card => card.classList.remove("dim"));
@@ -505,9 +607,25 @@
     applyPanZoom();
   }
 
+  function centerNodeInCanvas(id) {
+    const node = treeStage.querySelector(`[data-person-id="${id}"]`);
+    if (!node) return;
+    const canvasRect = fullTreeCanvas.getBoundingClientRect();
+    const nodeRect = node.getBoundingClientRect();
+    const canvasCenterX = canvasRect.left + canvasRect.width / 2;
+    const canvasCenterY = canvasRect.top + canvasRect.height / 2;
+    const nodeCenterX = nodeRect.left + nodeRect.width / 2;
+    const nodeCenterY = nodeRect.top + nodeRect.height / 2;
+    const dx = (canvasCenterX - nodeCenterX) / state.pan.zoom;
+    const dy = (canvasCenterY - nodeCenterY) / state.pan.zoom;
+    state.pan.x += dx;
+    state.pan.y += dy;
+    applyPanZoom();
+  }
+
   let lastWheel = 0;
   fullTreeCanvas.addEventListener("wheel", (e) => {
-    if (state.view !== "full") return;
+    if (state.view === "focus") return;
     e.preventDefault();
     const now = Date.now();
     if (now - lastWheel < 16) return;
@@ -520,7 +638,7 @@
   let isPanning = false;
   let start = { x: 0, y: 0 };
   fullTreeCanvas.addEventListener("pointerdown", (e) => {
-    if (state.view !== "full") return;
+    if (state.view === "focus") return;
     isPanning = true;
     fullTreeCanvas.setPointerCapture(e.pointerId);
     start = { x: e.clientX - state.pan.x, y: e.clientY - state.pan.y };
@@ -549,7 +667,10 @@
     const target = e.target;
     const card = target.closest(".node-card");
     if (card) {
-      openDrawer(card.dataset.personId);
+      const id = card.dataset.personId;
+      state.selectedId = id;
+      highlightPath(id);
+      openDrawer(id);
       return;
     }
 
@@ -598,6 +719,16 @@
         }
         closeDrawer();
         break;
+      case "drawer-focus":
+        if (state.selectedId) {
+          state.rootId = state.selectedId;
+          setView("branch");
+          render();
+          requestAnimationFrame(() => fitToScreen());
+          highlightPath(state.selectedId);
+        }
+        closeDrawer();
+        break;
       case "toggle-ancestors":
         expandAncestors();
         break;
@@ -608,7 +739,8 @@
         if (state.selectedId) centerOn(state.selectedId);
         break;
       case "view-full":
-        setView("full");
+        if (state.selectedId) state.rootId = state.selectedId;
+        setView("branch");
         render();
         requestAnimationFrame(() => fitToScreen());
         break;
@@ -659,8 +791,9 @@
   });
 
   // View toggle
+  forestModeBtn.onclick = () => { setView("forest"); render(); requestAnimationFrame(() => fitToScreen()); };
+  branchModeBtn.onclick = () => { setView("branch"); render(); requestAnimationFrame(() => fitToScreen()); };
   el("focusModeBtn").onclick = () => { setView("focus"); render(); };
-  el("fullTreeBtn").onclick = () => { setView("full"); render(); requestAnimationFrame(() => fitToScreen()); };
 
   // Insights toggle
   el("insightsToggle").onclick = () => {
@@ -670,16 +803,11 @@
     el("insightsToggle").setAttribute("aria-expanded", (!isOpen).toString());
   };
 
-  // Generation controls
-  fullTreeView.querySelectorAll(".generation-controls .btn").forEach(btn => {
+  // Depth controls
+  depthControls.querySelectorAll(".btn").forEach(btn => {
     btn.onclick = () => {
-      const gen = btn.dataset.gen;
-      if (gen === "branch") {
-        state.fullTree.branchOnly = true;
-      } else {
-        state.fullTree.branchOnly = false;
-        state.fullTree.gen = Number(gen);
-      }
+      const depth = btn.dataset.depth;
+      state.fullTree.depth = depth === "all" ? "all" : Number(depth);
       render();
       requestAnimationFrame(() => fitToScreen());
     };
