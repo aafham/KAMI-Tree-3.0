@@ -417,8 +417,8 @@
       <div class="node-card ${compactClass} ${selectedClass}" data-person-id="${person.id}">
         <div class="meta">
           <div class="name">${displayName}</div>
-          ${birthLabel ? `<div class="years">${birthLabel}</div>` : ""}
-          ${ageLabel ? `<div class="years">Age ${ageLabel}</div>` : ""}
+          <div class="years">Born ${birthLabel || "-"}</div>
+          <div class="years">Age ${ageLabel || "-"}</div>
         </div>
         ${genderBadge}
       </div>
@@ -472,6 +472,11 @@
   function formatDate(value) {
     if (!value) return "";
     if (typeof value === "string" && value.length >= 10) {
+      const parts = value.split("-");
+      if (parts.length === 3) {
+        const [y, m, d] = parts;
+        return `${d}/${m}/${y}`;
+      }
       return value;
     }
     return "";
