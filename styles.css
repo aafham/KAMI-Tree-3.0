@@ -178,9 +178,11 @@ body {
 
 .forest-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 32px;
   padding: 10px;
+  align-items: start;
+  justify-items: start;
 }
 
 .tree-subtree {
@@ -188,6 +190,8 @@ body {
   border-radius: 16px;
   padding: 14px;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+  overflow: visible;
+  min-width: 360px;
 }
 
 .tree-family {
@@ -210,21 +214,22 @@ body {
 
 .tree-level {
   display: flex;
-  align-items: center;
-  gap: 18px;
+  align-items: flex-start;
+  gap: 24px;
   position: relative;
 }
 .tree-node {
   display: flex;
   align-items: center;
+  min-width: max-content;
 }
 .tree-children {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 22px;
   position: relative;
-  margin-left: 18px;
-  padding-left: 22px;
+  margin-left: 28px;
+  padding-left: 26px;
 }
 .tree-children::before {
   content: "";
@@ -238,14 +243,14 @@ body {
 }
 .tree-child {
   position: relative;
-  padding-left: 18px;
+  padding-left: 22px;
 }
 .tree-child::before {
   content: "";
   position: absolute;
   left: 0;
   top: 50%;
-  width: 18px;
+  width: 22px;
   height: 2px;
   background: rgba(0,0,0,0.18);
   border-radius: 6px;
