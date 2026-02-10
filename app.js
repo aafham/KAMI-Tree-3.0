@@ -404,9 +404,6 @@
     if (!person) return "";
     const gender = inferGender(person);
     const genderClass = gender === "male" ? "gender-male" : gender === "female" ? "gender-female" : "gender-unknown";
-    const years = state.settings.showYears && (formatYear(person.birth) || formatYear(person.death))
-      ? `${formatYear(person.birth) || "?"}-${formatYear(person.death) || "?"}`
-      : "";
     const compactClass = state.settings.compactCards ? "compact" : "";
     const genderBadge = state.settings.showGender ? `<div class="gender ${genderClass}">${gender ? gender[0].toUpperCase() : "?"}</div>` : "";
     const selectedClass = person.id === state.selectedId ? "selected" : "";
@@ -417,8 +414,8 @@
       <div class="node-card ${compactClass} ${selectedClass}" data-person-id="${person.id}">
         <div class="meta">
           <div class="name">${displayName}</div>
-          <div class="years">Born ${birthLabel || "-"}</div>
-          <div class="years">Age ${ageLabel || "-"}</div>
+          <div class="years">Born: ${birthLabel || "-"}</div>
+          <div class="years">Age: ${ageLabel || "-"}</div>
         </div>
         ${genderBadge}
       </div>

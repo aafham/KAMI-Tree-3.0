@@ -134,7 +134,8 @@ body {
   gap: 10px;
   cursor: pointer;
   min-width: 150px;
-  max-width: 240px;
+  max-width: 220px;
+  width: 220px;
 }
 .node-card.compact { padding: 6px 8px; font-size: 13px; }
 .node-card .meta { display: flex; flex-direction: column; }
@@ -142,8 +143,10 @@ body {
   font-weight: 600;
   white-space: normal;
   line-height: 1.2;
-  max-width: 180px;
+  max-width: 190px;
+  word-break: break-word;
 }
+.node-card .years { display: block; }
 .node-card .years { font-size: 12px; color: var(--muted); }
 .node-card .gender { font-size: 12px; padding: 4px 8px; border-radius: 999px; background: rgba(0,0,0,0.05); }
 .node-card.selected { outline: 2px solid var(--accent-2); }
@@ -184,8 +187,8 @@ body {
 
 .forest-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
-  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));
+  gap: 44px;
   padding: 16px;
   align-items: start;
   justify-items: start;
@@ -197,7 +200,7 @@ body {
   padding: 14px;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
   overflow: visible;
-  min-width: 520px;
+  min-width: 560px;
 }
 
 .tree-family {
@@ -235,10 +238,10 @@ body {
 .tree-children {
   display: flex;
   flex-direction: column;
-  gap: 26px;
+  gap: 30px;
   position: relative;
-  margin-left: 36px;
-  padding-left: 34px;
+  margin-left: 44px;
+  padding-left: 40px;
   min-width: max-content;
 }
 .tree-children::before {
@@ -253,7 +256,7 @@ body {
 }
 .tree-child {
   position: relative;
-  padding-left: 30px;
+  padding-left: 36px;
   min-width: max-content;
 }
 .tree-child::before {
@@ -261,7 +264,7 @@ body {
   position: absolute;
   left: 0;
   top: 50%;
-  width: 30px;
+  width: 36px;
   height: 2px;
   background: rgba(0,0,0,0.18);
   border-radius: 6px;
