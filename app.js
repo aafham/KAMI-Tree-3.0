@@ -40,6 +40,7 @@
   const insights = el("insights");
   const insightsContent = el("insightsContent");
   const settingsModal = el("settingsModal");
+  const helpModal = el("helpModal");
   const familyNameEl = el("familyName");
 
   let people = [];
@@ -705,9 +706,17 @@
         settingsModal.classList.add("active");
         settingsModal.setAttribute("aria-hidden", "false");
         break;
+      case "help":
+        helpModal.classList.add("active");
+        helpModal.setAttribute("aria-hidden", "false");
+        break;
       case "settings-close":
         settingsModal.classList.remove("active");
         settingsModal.setAttribute("aria-hidden", "true");
+        break;
+      case "help-close":
+        helpModal.classList.remove("active");
+        helpModal.setAttribute("aria-hidden", "true");
         break;
       case "drawer-close":
         closeDrawer();
@@ -823,6 +832,8 @@
       if (state.drawerOpen) closeDrawer();
       settingsModal.classList.remove("active");
       settingsModal.setAttribute("aria-hidden", "true");
+      helpModal.classList.remove("active");
+      helpModal.setAttribute("aria-hidden", "true");
     }
     if (e.key.toLowerCase() === "c") {
       centerOn(state.selectedId || state.rootId);

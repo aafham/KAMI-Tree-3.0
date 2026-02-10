@@ -317,6 +317,9 @@ body {
 .modal-body { padding: 12px; display: grid; gap: 10px; }
 .toggle { display: flex; gap: 8px; align-items: center; }
 .setting-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.help-title { font-weight: 700; font-size: 13px; color: var(--accent); }
+.help-list { margin: 0; padding-left: 18px; color: var(--text); }
+.help-list li { margin-bottom: 6px; }
 
 .muted { color: var(--muted); font-size: 13px; }
 

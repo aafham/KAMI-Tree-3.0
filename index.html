@@ -28,6 +28,7 @@
         <button id="centerBtn" class="btn" data-action="center">Center</button>
         <button id="resetBtn" class="btn" data-action="reset">Reset</button>
         <button id="fitBtn" class="btn" data-action="fit">Fit</button>
+        <button id="helpBtn" class="btn" data-action="help">Guide</button>
         <button id="settingsBtn" class="btn" data-action="settings">Settings</button>
       </div>
     </header>
@@ -116,6 +117,37 @@
               <option value="focus">Focus</option>
             </select>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="helpModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">How to Use</div>
+          <button class="btn" data-action="help-close">Close</button>
+        </div>
+        <div class="modal-body">
+          <div class="help-title">Views</div>
+          <ul class="help-list">
+            <li><strong>All Families</strong>: shows all root families in one canvas.</li>
+            <li><strong>Branch</strong>: focuses on one family branch (selected root).</li>
+            <li><strong>Focus</strong>: one person with parents/spouses/children.</li>
+          </ul>
+          <div class="help-title">Navigation</div>
+          <ul class="help-list">
+            <li>Click a card to open details.</li>
+            <li>Use <strong>Focus this person</strong> in the drawer to open Branch view.</li>
+            <li>Search jumps to the person and highlights the path.</li>
+            <li>Drag to pan, scroll to zoom (Forest & Branch).</li>
+            <li><strong>Fit</strong> zooms to all visible nodes.</li>
+          </ul>
+          <div class="help-title">Shortcuts</div>
+          <ul class="help-list">
+            <li><code>/</code> focus search</li>
+            <li><code>C</code> center selected</li>
+            <li><code>Esc</code> close drawer/modals</li>
+          </ul>
         </div>
       </div>
     </div>
