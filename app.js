@@ -410,12 +410,15 @@
     const compactClass = state.settings.compactCards ? "compact" : "";
     const genderBadge = state.settings.showGender ? `<div class="gender ${genderClass}">${gender ? gender[0].toUpperCase() : "?"}</div>` : "";
     const selectedClass = person.id === state.selectedId ? "selected" : "";
-    const displayName = getDisplayName(person);
+    const displayName = getFirstName(person);
+    const birthLabel = formatDate(person.birth);
+    const ageLabel = formatAge(person.birth, person.death);
     return `
       <div class="node-card ${compactClass} ${selectedClass}" data-person-id="${person.id}">
         <div class="meta">
           <div class="name">${displayName}</div>
-          ${years ? `<div class="years">${years}</div>` : ""}
+          ${birthLabel ? `<div class="years">${birthLabel}</div>` : ""}
+          ${ageLabel ? `<div class="years">Age ${ageLabel}</div>` : ""}
         </div>
         ${genderBadge}
       </div>
@@ -461,11 +464,38 @@
     return getParents(bId).some(pid => aParents.has(pid));
   }
 
-  function getDisplayName(person) {
+  function getFirstName(person) {
     const parts = splitNameParts(person.name);
-    if (person.id === state.selectedId) return parts.first;
-    if (state.selectedId && shareParent(state.selectedId, person.id)) return parts.first;
-    return normalizeName(person.name);
+    return parts.first || normalizeName(person.name);
+  }
+
+  function formatDate(value) {
+    if (!value) return "";
+    if (typeof value === "string" && value.length >= 10) {
+      return value;
+    }
+    return "";
+  }
+
+  function formatAge(birth, death) {
+    const birthDate = parseDate(birth);
+    if (!birthDate) return "";
+    const endDate = parseDate(death) || new Date("2026-02-10T00:00:00");
+    let age = endDate.getFullYear() - birthDate.getFullYear();
+    const m = endDate.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && endDate.getDate() < birthDate.getDate())) {
+      age -= 1;
+    }
+    return age >= 0 ? age.toString() : "";
+  }
+
+  function parseDate(value) {
+    if (!value || typeof value !== "string") return null;
+    const parts = value.split("-");
+    if (parts.length < 3) return null;
+    const [y, m, d] = parts.map(v => parseInt(v, 10));
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
   }
 
   function formatYear(value) {
