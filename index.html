@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -10,6 +10,10 @@
   <div class="app" id="app">
     <header class="toolbar" role="banner">
       <div class="toolbar-left">
+        <div class="brand">
+          <div class="brand-title" id="familyName">Family Tree</div>
+          <div class="brand-subtitle">Generation View</div>
+        </div>
         <div class="search" role="search">
           <input id="searchInput" type="search" placeholder="Search people..." aria-label="Search people" autocomplete="off" />
           <div id="searchResults" class="search-results" role="listbox" aria-label="Search results"></div>
@@ -20,9 +24,10 @@
         </div>
       </div>
       <div class="toolbar-right">
-        <button id="centerBtn" class="btn">Center</button>
-        <button id="resetBtn" class="btn">Reset</button>
-        <button id="settingsBtn" class="btn">Settings</button>
+        <button id="centerBtn" class="btn" data-action="center">Center</button>
+        <button id="resetBtn" class="btn" data-action="reset">Reset</button>
+        <button id="fitBtn" class="btn" data-action="fit">Fit</button>
+        <button id="settingsBtn" class="btn" data-action="settings">Settings</button>
       </div>
     </header>
 
@@ -38,13 +43,15 @@
             <button class="btn" data-gen="branch">Branch only</button>
           </div>
           <div class="branch-controls">
-            <button id="expandBranchBtn" class="btn">Expand branch</button>
-            <button id="collapseBranchBtn" class="btn">Collapse branch</button>
+            <button id="expandBranchBtn" class="btn" data-action="expand-branch">Expand branch</button>
+            <button id="collapseBranchBtn" class="btn" data-action="collapse-branch">Collapse branch</button>
           </div>
-          <button id="minimapToggle" class="btn">Minimap</button>
+          <button id="minimapToggle" class="btn" data-action="minimap">Minimap</button>
         </div>
         <div class="full-tree-canvas" id="fullTreeCanvas">
-          <div class="tree-stage" id="treeStage" aria-live="polite"></div>
+          <div class="tree-stage-outer">
+            <div class="tree-stage" id="treeStage" aria-live="polite"></div>
+          </div>
         </div>
         <div id="minimap" class="minimap" hidden>
           <div class="minimap-header">Minimap</div>
@@ -65,7 +72,7 @@
           <div class="stat-value" id="statFamilies">0</div>
         </div>
         <div class="stat">
-          <div class="stat-label">Generations</div>
+          <div class="stat-label">Descendant depth</div>
           <div class="stat-value" id="statGenerations">0</div>
         </div>
       </div>
@@ -80,11 +87,33 @@
     <div id="detailDrawer" class="drawer" role="dialog" aria-modal="true" aria-hidden="true">
       <div class="drawer-header">
         <div id="drawerTitle" class="drawer-title">Person</div>
-        <button id="drawerClose" class="btn">Close</button>
+        <button id="drawerClose" class="btn" data-action="drawer-close">Close</button>
       </div>
       <div id="drawerContent" class="drawer-content"></div>
       <div class="drawer-footer">
-        <button id="drawerGoTo" class="btn">Go to / Center here</button>
+        <button id="drawerGoTo" class="btn" data-action="drawer-center">Go to / Center here</button>
+      </div>
+    </div>
+
+    <div id="settingsModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">Settings</div>
+          <button class="btn" data-action="settings-close">Close</button>
+        </div>
+        <div class="modal-body">
+          <label class="toggle"><input type="checkbox" id="settingShowYears" checked />Show years</label>
+          <label class="toggle"><input type="checkbox" id="settingCompactCards" />Compact cards</label>
+          <label class="toggle"><input type="checkbox" id="settingShowGender" checked />Show gender badge</label>
+          <label class="toggle"><input type="checkbox" id="settingReduceMotion" />Reduce motion</label>
+          <div class="setting-row">
+            <span>Default view</span>
+            <select id="settingDefaultView">
+              <option value="focus">Focus</option>
+              <option value="full">Full Tree</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
   </div>
