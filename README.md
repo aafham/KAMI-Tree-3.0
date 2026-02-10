@@ -11,7 +11,7 @@ Key components:
 
 - `app.js`: View state, data layer, focus rendering, full tree rendering, pan/zoom, search jump + highlight.
 - `styles.css`: Compact toolbar, responsive focus layout, drawer/bottom sheet styles, and legend.
-- `data.json`: Sample dataset. Replace with your real family data structure.
+- `data.json`: Family data source with `selfId`, `people`, and `unions`. Relationships are derived from unions.
 
 Performance notes:
 
@@ -22,3 +22,13 @@ Performance notes:
 Usage:
 
 Open `index.html` in a browser.
+
+### Data schema (expected)
+
+`data.json` should include:
+
+- `familyName`: Optional title.
+- `dataVersion`: Optional version string.
+- `selfId`: Default person to center on load.
+- `people`: Array of `{ id, name, birth, death, relation, note, photo }`.
+- `unions`: Array of `{ id, partner1, partner2, children: [personId...] }`.
