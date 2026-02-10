@@ -200,34 +200,41 @@ body {
 
 .tree-level {
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 18px;
   position: relative;
 }
-.tree-level.spouse-root::after { display: none; }
-.tree-level::after {
-  content: "";
-  position: absolute;
-  bottom: -10px;
-  width: 2px;
-  height: 10px;
-  background: rgba(0,0,0,0.1);
+.tree-node {
+  display: flex;
+  align-items: center;
 }
 .tree-children {
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  gap: 18px;
   position: relative;
-  padding-top: 12px;
+  margin-left: 18px;
+  padding-left: 22px;
 }
 .tree-children::before {
   content: "";
   position: absolute;
+  left: 0;
   top: 0;
-  left: 10%;
-  right: 10%;
+  bottom: 0;
+  width: 2px;
+  background: rgba(0,0,0,0.1);
+}
+.tree-child {
+  position: relative;
+  padding-left: 18px;
+}
+.tree-child::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 18px;
   height: 2px;
   background: rgba(0,0,0,0.1);
 }
