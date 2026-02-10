@@ -935,22 +935,33 @@
     searchResults.classList.remove("active");
   }
 
+  function isHidden(el) {
+    return el.hasAttribute("hidden");
+  }
+
   function toggleMoreMenu() {
-    const isOpen = !moreMenu.hidden;
-    moreMenu.hidden = isOpen;
-    moreBtn.setAttribute("aria-expanded", (!isOpen).toString());
-    if (isOpen) exportMenu.hidden = true;
+    const isOpen = !isHidden(moreMenu);
+    if (isOpen) {
+      closeMoreMenu();
+      return;
+    }
+    moreMenu.removeAttribute("hidden");
+    moreBtn.setAttribute("aria-expanded", "true");
   }
 
   function closeMoreMenu() {
-    moreMenu.hidden = true;
-    exportMenu.hidden = true;
+    moreMenu.setAttribute("hidden", "");
+    exportMenu.setAttribute("hidden", "");
     moreBtn.setAttribute("aria-expanded", "false");
   }
 
   function toggleExportMenu() {
-    const isOpen = !exportMenu.hidden;
-    exportMenu.hidden = isOpen;
+    const isOpen = !isHidden(exportMenu);
+    if (isOpen) {
+      exportMenu.setAttribute("hidden", "");
+    } else {
+      exportMenu.removeAttribute("hidden");
+    }
     const btn = document.querySelector('[data-action="export-toggle"]');
     if (btn) btn.setAttribute("aria-expanded", (!isOpen).toString());
   }
@@ -958,7 +969,7 @@
   // Event delegation
   document.addEventListener("click", (e) => {
     const target = e.target;
-    if (!target.closest(".more") && !moreMenu.hidden) {
+    if (!target.closest(".more") && !isHidden(moreMenu)) {
       closeMoreMenu();
     }
     const card = target.closest(".node-card");
@@ -1133,7 +1144,7 @@
   });
 
   document.addEventListener("pointerdown", (e) => {
-    if (!moreMenu.hidden && !e.target.closest(".more")) {
+    if (!isHidden(moreMenu) && !e.target.closest(".more")) {
       closeMoreMenu();
     }
   }, true);
