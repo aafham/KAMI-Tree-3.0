@@ -17,6 +17,8 @@
       reduceMotion: false,
       defaultView: "forest",
       autoOpenDrawer: false,
+      showDeceased: true,
+      directLineOnly: false,
     },
   };
 
@@ -41,6 +43,8 @@
   const insightsContent = el("insightsContent");
   const settingsModal = el("settingsModal");
   const helpModal = el("helpModal");
+  const timelineModal = el("timelineModal");
+  const timelineList = el("timelineList");
   const familyNameEl = el("familyName");
 
   let people = [];
@@ -204,6 +208,9 @@
     breadcrumbs.classList.toggle("hidden", !isBranch);
     branchControls.classList.toggle("hidden", !isBranch);
     setStageAnchor(view);
+    if (isBranch && state.fullTree.depth === "all") {
+      autoCollapseDeep(state.rootId, 2);
+    }
   }
 
   function setStageAnchor(view) {
@@ -388,6 +395,7 @@
     treeStage.appendChild(forestGrid);
     applyPanZoom();
     updateBreadcrumbs();
+    updateMinimap();
   }
 
   function renderBranchTree() {
@@ -398,6 +406,7 @@
     treeStage.appendChild(tree);
     applyPanZoom();
     updateBreadcrumbs();
+    updateMinimap();
   }
 
   function buildTreeNode(personId, depth, options = {}) {
@@ -407,6 +416,7 @@
     node.dataset.personId = personId;
 
     if (!person) return node;
+    if (!state.settings.showDeceased && person.death) return node;
 
     const depthLimit = state.fullTree.depth === "all" ? Infinity : state.fullTree.depth;
     if (depth > depthLimit) return node;
@@ -421,6 +431,7 @@
       getSpouses(personId)
         .map(id => peopleById.get(id))
         .filter(Boolean)
+        .filter(spouse => state.settings.showDeceased || !spouse.death)
         .forEach(spouse => {
           const wrapper = document.createElement("div");
           wrapper.innerHTML = cardTemplate(spouse, true);
@@ -431,7 +442,15 @@
       nodeWrap.innerHTML = cardTemplate(person, true);
     }
 
-    const children = getTreeChildren(personId);
+    const children = getTreeChildren(personId).filter(child => {
+      if (!state.settings.showDeceased && child.death) return false;
+      if (state.settings.directLineOnly && state.view === "branch" && state.selectedId) {
+        const directSet = getDirectLineSet(state.rootId, state.selectedId);
+        const allowed = directSet.has(child.id) || directSet.has(personId);
+        return allowed;
+      }
+      return true;
+    });
     if (children.length) {
       const toggleBtn = document.createElement("button");
       toggleBtn.className = "node-toggle";
@@ -466,18 +485,20 @@
     const gender = inferGender(person);
     const genderClass = gender === "male" ? "gender-male" : gender === "female" ? "gender-female" : "gender-unknown";
     const compactClass = state.settings.compactCards ? "compact" : "";
+    const photoBadge = person.photo ? `<img class="photo" src="${person.photo}" alt="${displayName}" />` : "";
     const genderBadge = state.settings.showGender ? `<div class="gender ${genderClass}">${gender ? gender[0].toUpperCase() : "?"}</div>` : "";
     const selectedClass = person.id === state.selectedId ? "selected" : "";
     const displayName = getFirstName(person);
     const birthLabel = formatDate(person.birth);
     const ageLabel = formatAge(person.birth, person.death);
     return `
-      <div class="node-card ${compactClass} ${selectedClass}" data-person-id="${person.id}">
+      <div class="node-card ${compactClass} ${selectedClass}" data-person-id="${person.id}" tabindex="0">
         <div class="meta">
           <div class="name">${displayName}</div>
           <div class="years">Born: ${birthLabel || "-"}</div>
           <div class="years">Age: ${ageLabel || "-"}</div>
         </div>
+        ${photoBadge}
         ${genderBadge}
       </div>
     `;
@@ -635,7 +656,10 @@
     const targetId = state.selectedId || state.rootId;
     const rootId = state.view === "forest" ? findTopRootId(targetId) : state.rootId;
     const crumbs = getPathToRoot(targetId, rootId).reverse();
-    breadcrumbs.textContent = crumbs.map(p => p.name).join(" > ") || "";
+    breadcrumbs.innerHTML = crumbs.map((p, idx) => {
+      const sep = idx === 0 ? "" : " <span class=\"crumb-sep\">›</span> ";
+      return `${sep}<button class=\"crumb\" data-breadcrumb=\"${p.id}\">${getFirstName(p)}</button>`;
+    }).join("") || "";
   }
 
   function getPathToRoot(id, explicitRootId) {
@@ -734,12 +758,13 @@
     });
     setTimeout(() => {
       document.querySelectorAll(".node-card").forEach(card => card.classList.remove("dim"));
-    }, 1200);
+    }, 2200);
   }
 
   // Pan/zoom + fit
   function applyPanZoom() {
     treeStage.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.pan.zoom})`;
+    updateMinimapViewport();
   }
 
   function fitToScreen() {
@@ -769,6 +794,80 @@
     state.pan.x += dx;
     state.pan.y += dy;
     applyPanZoom();
+  }
+
+  function updateMinimap() {
+    const minimapContent = el("minimapContent");
+    if (!minimapContent) return;
+    minimapContent.innerHTML = "";
+    const clone = treeStage.cloneNode(true);
+    clone.style.transform = "scale(0.08)";
+    clone.style.transformOrigin = "0 0";
+    minimapContent.appendChild(clone);
+    updateMinimapViewport();
+  }
+
+  function updateMinimapViewport() {
+    const minimapViewport = el("minimapViewport");
+    const minimapContent = el("minimapContent");
+    if (!minimapViewport || !minimapContent) return;
+    const canvasRect = fullTreeCanvas.getBoundingClientRect();
+    const stageRect = treeStage.getBoundingClientRect();
+    if (!stageRect.width || !stageRect.height) return;
+    const scale = 0.08;
+    const viewW = canvasRect.width * scale / state.pan.zoom;
+    const viewH = canvasRect.height * scale / state.pan.zoom;
+    minimapViewport.style.width = `${viewW}px`;
+    minimapViewport.style.height = `${viewH}px`;
+    minimapViewport.style.left = `${Math.max(0, -state.pan.x * scale)}px`;
+    minimapViewport.style.top = `${Math.max(0, -state.pan.y * scale)}px`;
+  }
+
+  function getDirectLineSet(rootId, targetId) {
+    const set = new Set();
+    if (!rootId || !targetId) return set;
+    const visited = new Set();
+    function dfs(currentId, path) {
+      if (visited.has(currentId)) return null;
+      visited.add(currentId);
+      if (currentId === targetId) return path;
+      const kids = getChildren(currentId);
+      for (const kid of kids) {
+        const result = dfs(kid, [...path, kid]);
+        if (result) return result;
+      }
+      return null;
+    }
+    const path = dfs(rootId, [rootId]);
+    if (path) path.forEach(id => set.add(id));
+    return set;
+  }
+
+  function autoCollapseDeep(rootId, maxDepth) {
+    if (!rootId) return;
+    const collapsed = new Set();
+    const stack = [{ id: rootId, depth: 1 }];
+    const visited = new Set();
+    while (stack.length) {
+      const { id, depth } = stack.pop();
+      if (visited.has(id)) continue;
+      visited.add(id);
+      if (depth >= maxDepth) collapsed.add(id);
+      const kids = getChildren(id);
+      kids.forEach(kid => stack.push({ id: kid, depth: depth + 1 }));
+    }
+    state.fullTree.collapsed = collapsed;
+  }
+
+  function renderTimeline() {
+    const items = people
+      .filter(p => p.birth)
+      .sort((a, b) => (a.birth || "").localeCompare(b.birth || ""));
+    timelineList.innerHTML = items.map(p => {
+      const name = getFirstName(p);
+      const birth = formatDate(p.birth);
+      return `<div class="timeline-item"><div class="timeline-year">${birth}</div><div class="timeline-name">${name}</div></div>`;
+    }).join("");
   }
 
   let lastWheel = 0;
@@ -807,6 +906,8 @@
     state.settings.showGender = el("settingShowGender").checked;
     state.settings.reduceMotion = el("settingReduceMotion").checked;
     state.settings.defaultView = el("settingDefaultView").value;
+    state.settings.showDeceased = el("settingShowDeceased").checked;
+    state.settings.directLineOnly = el("settingDirectLine").checked;
     document.body.style.scrollBehavior = state.settings.reduceMotion ? "auto" : "smooth";
   }
 
@@ -848,6 +949,18 @@
       return;
     }
 
+    const crumb = target.closest("[data-breadcrumb]");
+    if (crumb) {
+      const id = crumb.getAttribute("data-breadcrumb");
+      if (id) {
+        state.selectedId = id;
+        if (state.view === "branch") state.rootId = id;
+        render();
+        highlightPath(id);
+      }
+      return;
+    }
+
     const action = target.getAttribute("data-action");
     if (!action) return;
 
@@ -865,6 +978,11 @@
         settingsModal.classList.add("active");
         settingsModal.setAttribute("aria-hidden", "false");
         break;
+      case "timeline":
+        renderTimeline();
+        timelineModal.classList.add("active");
+        timelineModal.setAttribute("aria-hidden", "false");
+        break;
       case "help":
         helpModal.classList.add("active");
         helpModal.setAttribute("aria-hidden", "false");
@@ -873,9 +991,28 @@
         settingsModal.classList.remove("active");
         settingsModal.setAttribute("aria-hidden", "true");
         break;
+      case "timeline-close":
+        timelineModal.classList.remove("active");
+        timelineModal.setAttribute("aria-hidden", "true");
+        break;
       case "help-close":
         helpModal.classList.remove("active");
         helpModal.setAttribute("aria-hidden", "true");
+        break;
+      case "export-png":
+        if (window.html2canvas) {
+          html2canvas(fullTreeCanvas).then(canvas => {
+            const link = document.createElement("a");
+            link.download = "family-tree.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+          });
+        } else {
+          alert("Export PNG not available.");
+        }
+        break;
+      case "export-pdf":
+        window.print();
         break;
       case "drawer-close":
         closeDrawer();
@@ -951,7 +1088,7 @@
   });
 
   // Settings interactions
-  ["settingShowYears", "settingCompactCards", "settingShowGender", "settingReduceMotion", "settingDefaultView"].forEach(id => {
+  ["settingShowYears", "settingCompactCards", "settingShowGender", "settingReduceMotion", "settingDefaultView", "settingShowDeceased", "settingDirectLine"].forEach(id => {
     el(id).addEventListener("change", () => {
       applySettings();
       render();
@@ -982,6 +1119,24 @@
 
   // Keyboard shortcuts
   window.addEventListener("keydown", (e) => {
+    const focusedCard = document.activeElement && document.activeElement.classList.contains("node-card")
+      ? document.activeElement
+      : null;
+    if (focusedCard) {
+      if (e.key === "Enter") {
+        const id = focusedCard.dataset.personId;
+        if (id) openDrawer(id);
+      }
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        const cards = Array.from(document.querySelectorAll(".node-card"));
+        const idx = cards.indexOf(focusedCard);
+        if (idx >= 0) {
+          const next = e.key === "ArrowRight" ? cards[idx + 1] : cards[idx - 1];
+          if (next) next.focus();
+        }
+      }
+    }
     if (e.key === "/") {
       e.preventDefault();
       searchInput.focus();
@@ -992,6 +1147,8 @@
       settingsModal.setAttribute("aria-hidden", "true");
       helpModal.classList.remove("active");
       helpModal.setAttribute("aria-hidden", "true");
+      timelineModal.classList.remove("active");
+      timelineModal.setAttribute("aria-hidden", "true");
     }
     if (e.key.toLowerCase() === "c") {
       centerOn(state.selectedId || state.rootId);

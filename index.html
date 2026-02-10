@@ -28,6 +28,9 @@
         <button id="centerBtn" class="btn" data-action="center">Center</button>
         <button id="resetBtn" class="btn" data-action="reset">Reset</button>
         <button id="fitBtn" class="btn" data-action="fit">Fit</button>
+        <button id="timelineBtn" class="btn" data-action="timeline">Timeline</button>
+        <button id="exportPngBtn" class="btn" data-action="export-png">Export PNG</button>
+        <button id="exportPdfBtn" class="btn" data-action="export-pdf">Export PDF</button>
         <button id="helpBtn" class="btn" data-action="help">Guide</button>
         <button id="settingsBtn" class="btn" data-action="settings">Settings</button>
       </div>
@@ -54,7 +57,10 @@
         </div>
         <div id="minimap" class="minimap" hidden>
           <div class="minimap-header">Minimap</div>
-          <div class="minimap-body">Scale preview (simplified)</div>
+          <div class="minimap-body">
+            <div id="minimapContent" class="minimap-content"></div>
+            <div id="minimapViewport" class="minimap-viewport"></div>
+          </div>
         </div>
       </section>
     </main>
@@ -106,6 +112,8 @@
           <label class="toggle"><input type="checkbox" id="settingCompactCards" />Compact cards</label>
           <label class="toggle"><input type="checkbox" id="settingShowGender" checked />Show gender badge</label>
           <label class="toggle"><input type="checkbox" id="settingReduceMotion" />Reduce motion</label>
+          <label class="toggle"><input type="checkbox" id="settingShowDeceased" checked />Show deceased</label>
+          <label class="toggle"><input type="checkbox" id="settingDirectLine" />Show only direct line (Branch)</label>
           <div class="setting-row">
             <span>Default view</span>
             <select id="settingDefaultView">
@@ -148,8 +156,21 @@
         </div>
       </div>
     </div>
+
+    <div id="timelineModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">Timeline</div>
+          <button class="btn" data-action="timeline-close">Close</button>
+        </div>
+        <div class="modal-body">
+          <div id="timelineList" class="timeline-list"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
