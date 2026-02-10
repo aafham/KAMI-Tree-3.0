@@ -101,7 +101,43 @@
   const getParents = (id) => Array.from(parentsMap.get(id) || []);
   const getSpouses = (id) => Array.from(spousesMap.get(id) || []);
   const getChildren = (id) => Array.from(childrenMap.get(id) || []);
-  const getRoots = () => people.filter(p => getParents(p.id).length === 0).map(p => p.id);
+
+  function getTreeChildren(id) {
+    const childIds = [];
+    unions.forEach(union => {
+      const p1 = union.partner1 || null;
+      const p2 = union.partner2 || null;
+      const primary = p1 || p2;
+      if (primary === id) {
+        (union.children || []).forEach(cid => childIds.push(cid));
+      }
+    });
+    return Array.from(new Set(childIds)).map(cid => peopleById.get(cid)).filter(Boolean);
+  }
+  function getForestRoots() {
+    const noParents = new Set(people.filter(p => getParents(p.id).length === 0).map(p => p.id));
+    const rootSet = new Set();
+    const spouseOfRoot = new Set();
+
+    unions.forEach(union => {
+      const p1 = union.partner1 || null;
+      const p2 = union.partner2 || null;
+      const p1Root = p1 && noParents.has(p1);
+      const p2Root = p2 && noParents.has(p2);
+      if (p1Root || p2Root) {
+        const primary = p1Root ? p1 : p2;
+        if (primary) rootSet.add(primary);
+        const other = primary === p1 ? p2 : p1;
+        if (other) spouseOfRoot.add(other);
+      }
+    });
+
+    noParents.forEach(id => {
+      if (!spouseOfRoot.has(id) && !rootSet.has(id)) rootSet.add(id);
+    });
+
+    return Array.from(rootSet);
+  }
 
   function updateStats() {
     el("statPeople").textContent = people.length;
@@ -318,7 +354,7 @@
 
   function renderForest() {
     treeStage.innerHTML = "";
-    const roots = getRoots();
+    const roots = getForestRoots();
     const forestGrid = document.createElement("div");
     forestGrid.className = "forest-grid";
     roots.forEach(rootId => {
@@ -356,20 +392,24 @@
     const nodeWrap = document.createElement("div");
     nodeWrap.className = "tree-node";
 
-    const familyRow = document.createElement("div");
-    familyRow.className = "tree-family";
-    familyRow.innerHTML = cardTemplate(person, true);
-    getSpouses(personId)
-      .map(id => peopleById.get(id))
-      .filter(Boolean)
-      .forEach(spouse => {
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = cardTemplate(spouse, true);
-        familyRow.appendChild(wrapper.firstElementChild);
-      });
-    nodeWrap.appendChild(familyRow);
+    if (depth === 1) {
+      const familyRow = document.createElement("div");
+      familyRow.className = "tree-family";
+      familyRow.innerHTML = cardTemplate(person, true);
+      getSpouses(personId)
+        .map(id => peopleById.get(id))
+        .filter(Boolean)
+        .forEach(spouse => {
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = cardTemplate(spouse, true);
+          familyRow.appendChild(wrapper.firstElementChild);
+        });
+      nodeWrap.appendChild(familyRow);
+    } else {
+      nodeWrap.innerHTML = cardTemplate(person, true);
+    }
 
-    const children = getChildren(personId).map(id => peopleById.get(id)).filter(Boolean);
+    const children = getTreeChildren(personId);
     if (children.length) {
       const toggleBtn = document.createElement("button");
       toggleBtn.className = "node-toggle";
