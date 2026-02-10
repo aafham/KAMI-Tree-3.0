@@ -114,6 +114,15 @@
     });
     return Array.from(new Set(childIds)).map(cid => peopleById.get(cid)).filter(Boolean);
   }
+
+  function isPrimaryPartner(id) {
+    return unions.some(union => {
+      const p1 = union.partner1 || null;
+      const p2 = union.partner2 || null;
+      if (p1) return p1 === id;
+      return p2 === id;
+    });
+  }
   function getForestRoots() {
     const noParents = new Set(people.filter(p => getParents(p.id).length === 0).map(p => p.id));
     const rootSet = new Set();
@@ -357,9 +366,22 @@
     const roots = getForestRoots();
     const forestGrid = document.createElement("div");
     forestGrid.className = "forest-grid";
-    roots.forEach(rootId => {
+    const palette = [
+      "#e8f2ff",
+      "#ffe9ef",
+      "#e9fbf1",
+      "#fff2d9",
+      "#efe9ff",
+      "#e8f8ff",
+      "#f4efe8",
+      "#eaf1ff"
+    ];
+    roots.forEach((rootId, idx) => {
       const subtree = document.createElement("div");
       subtree.className = "tree-subtree";
+      const color = palette[idx % palette.length];
+      subtree.style.setProperty("--family-fill", color);
+      subtree.setAttribute("data-family-color", "true");
       subtree.appendChild(buildTreeNode(rootId, 1, { includeSpousesAtRoot: true }));
       forestGrid.appendChild(subtree);
     });
@@ -392,7 +414,7 @@
     const nodeWrap = document.createElement("div");
     nodeWrap.className = "tree-node";
 
-    if (depth === 1) {
+    if (depth === 1 || isPrimaryPartner(personId)) {
       const familyRow = document.createElement("div");
       familyRow.className = "tree-family";
       familyRow.innerHTML = cardTemplate(person, true);

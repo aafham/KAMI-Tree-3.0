@@ -207,6 +207,10 @@ body {
   overflow: visible;
   min-width: 760px;
 }
+.tree-subtree[data-family-color] .node-card {
+  background: var(--family-fill, #ffffff);
+  border-color: rgba(0,0,0,0.06);
+}
 
 .tree-family {
   display: flex;
