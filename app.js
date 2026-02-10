@@ -5,6 +5,7 @@
     view: "forest",
     selectedId: null,
     rootId: null,
+    treeMode: "tree",
     focusExpand: { ancestors: 1, children: {}, showAllChildren: false },
     fullTree: { depth: 2, expanded: new Set(), collapsed: new Set(), branchOnly: false },
     searchIndex: [],
@@ -48,8 +49,10 @@
   const insightsContent = el("insightsContent");
   const settingsModal = el("settingsModal");
   const helpModal = el("helpModal");
-  const timelineModal = el("timelineModal");
+  const timelinePanel = el("timelinePanel");
   const timelineList = el("timelineList");
+  const treeViewBtn = el("treeViewBtn");
+  const timelineViewBtn = el("timelineViewBtn");
   const familyNameEl = el("familyName");
 
   let people = [];
@@ -217,6 +220,9 @@
       autoCollapseDeep(state.rootId, 2);
     }
     updateViewSubtitle(view);
+    if (view === "focus") {
+      setTreeMode("tree");
+    }
   }
 
   function updateViewSubtitle(view) {
@@ -250,9 +256,12 @@
     }
     if (state.view === "forest") {
       renderForest();
-      return;
+    } else {
+      renderBranchTree();
     }
-    renderBranchTree();
+    if (state.treeMode === "timeline") {
+      renderTimeline();
+    }
   }
 
   function renderEmptyState() {
@@ -497,10 +506,10 @@
     const gender = inferGender(person);
     const genderClass = gender === "male" ? "gender-male" : gender === "female" ? "gender-female" : "gender-unknown";
     const compactClass = state.settings.compactCards ? "compact" : "";
-    const photoBadge = person.photo ? `<img class="photo" src="${person.photo}" alt="${displayName}" />` : "";
     const genderBadge = state.settings.showGender ? `<div class="gender ${genderClass}">${gender ? gender[0].toUpperCase() : "?"}</div>` : "";
     const selectedClass = person.id === state.selectedId ? "selected" : "";
     const displayName = getFirstName(person);
+    const photoBadge = person.photo ? `<img class="photo" src="${person.photo}" alt="${displayName}" />` : "";
     const birthLabel = formatDate(person.birth);
     const ageLabel = formatAge(person.birth, person.death);
     return `
@@ -746,6 +755,11 @@
     render();
     highlightPath(id);
     if (state.settings.autoOpenDrawer) openDrawer(id);
+    if (state.treeMode === "timeline") {
+      renderTimeline();
+      scrollTimelineTo(id);
+      return;
+    }
     if (state.view !== "focus") {
       resetPanZoom();
       requestAnimationFrame(() => {
@@ -878,8 +892,32 @@
     timelineList.innerHTML = items.map(p => {
       const name = getFirstName(p);
       const birth = formatDate(p.birth);
-      return `<div class="timeline-item"><div class="timeline-year">${birth}</div><div class="timeline-name">${name}</div></div>`;
+      const isSelected = p.id === state.selectedId;
+      return `<div class="timeline-item ${isSelected ? "selected" : ""}" data-timeline-id="${p.id}"><div class="timeline-year">${birth}</div><div class="timeline-name">${name}</div></div>`;
     }).join("");
+  }
+
+  function setTreeMode(mode) {
+    state.treeMode = mode;
+    const isTimeline = mode === "timeline";
+    fullTreeCanvas.hidden = isTimeline;
+    timelinePanel.hidden = !isTimeline;
+    el("minimap").hidden = isTimeline || el("minimap").hidden === true;
+    treeViewBtn.classList.toggle("active", !isTimeline);
+    timelineViewBtn.classList.toggle("active", isTimeline);
+    treeViewBtn.setAttribute("aria-selected", (!isTimeline).toString());
+    timelineViewBtn.setAttribute("aria-selected", (isTimeline).toString());
+    if (isTimeline) {
+      renderTimeline();
+      scrollTimelineTo(state.selectedId);
+    }
+  }
+
+  function scrollTimelineTo(id) {
+    if (!id || isHidden(timelinePanel)) return;
+    const item = timelineList.querySelector(`[data-timeline-id="${id}"]`);
+    if (!item) return;
+    item.scrollIntoView({ block: "center", behavior: "smooth" });
   }
 
   let lastWheel = 0;
@@ -898,6 +936,9 @@
   let start = { x: 0, y: 0 };
   fullTreeCanvas.addEventListener("pointerdown", (e) => {
     if (state.view === "focus") return;
+    if (e.target.closest(".node-card") || e.target.closest(".node-toggle") || e.target.closest("button") || e.target.closest("a")) {
+      return;
+    }
     isPanning = true;
     fullTreeCanvas.setPointerCapture(e.pointerId);
     start = { x: e.clientX - state.pan.x, y: e.clientY - state.pan.y };
@@ -910,6 +951,7 @@
   });
   fullTreeCanvas.addEventListener("pointerup", () => { isPanning = false; });
   fullTreeCanvas.addEventListener("pointerleave", () => { isPanning = false; });
+  window.addEventListener("pointerup", () => { isPanning = false; });
 
   // Settings
   function applySettings() {
@@ -966,6 +1008,12 @@
     if (btn) btn.setAttribute("aria-expanded", (!isOpen).toString());
   }
 
+  document.addEventListener("click", (e) => {
+    if (!isHidden(moreMenu) && !e.target.closest(".more")) {
+      closeMoreMenu();
+    }
+  }, true);
+
   // Event delegation
   document.addEventListener("click", (e) => {
     const target = e.target;
@@ -1007,6 +1055,22 @@
       return;
     }
 
+    const timelineItem = target.closest("[data-timeline-id]");
+    if (timelineItem) {
+      const id = timelineItem.getAttribute("data-timeline-id");
+      if (id) {
+        state.selectedId = id;
+        render();
+        highlightPath(id);
+        openDrawer(id);
+        if (state.treeMode === "timeline") {
+          renderTimeline();
+          scrollTimelineTo(id);
+        }
+      }
+      return;
+    }
+
     const crumb = target.closest("[data-breadcrumb]");
     if (crumb) {
       const id = crumb.getAttribute("data-breadcrumb");
@@ -1044,15 +1108,15 @@
       case "search-close":
         closeSearch();
         break;
+      case "view-tree":
+        setTreeMode("tree");
+        break;
+      case "view-timeline":
+        setTreeMode("timeline");
+        break;
       case "settings":
         settingsModal.classList.add("active");
         settingsModal.setAttribute("aria-hidden", "false");
-        closeMoreMenu();
-        break;
-      case "timeline":
-        renderTimeline();
-        timelineModal.classList.add("active");
-        timelineModal.setAttribute("aria-hidden", "false");
         closeMoreMenu();
         break;
       case "help":
@@ -1063,10 +1127,6 @@
       case "settings-close":
         settingsModal.classList.remove("active");
         settingsModal.setAttribute("aria-hidden", "true");
-        break;
-      case "timeline-close":
-        timelineModal.classList.remove("active");
-        timelineModal.setAttribute("aria-hidden", "true");
         break;
       case "help-close":
         helpModal.classList.remove("active");
@@ -1229,8 +1289,6 @@
       settingsModal.setAttribute("aria-hidden", "true");
       helpModal.classList.remove("active");
       helpModal.setAttribute("aria-hidden", "true");
-      timelineModal.classList.remove("active");
-      timelineModal.setAttribute("aria-hidden", "true");
       closeMoreMenu();
     }
     if (e.key.toLowerCase() === "c") {

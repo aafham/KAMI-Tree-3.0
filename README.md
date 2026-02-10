@@ -7,6 +7,7 @@ Website ini ialah **Family Tree Viewer** untuk paparkan salasilah keluarga dalam
 - Papar **semua keluarga** (All Families / Forest) dalam satu kanvas.
 - Papar **satu cabang** (Branch) untuk fokus pada satu keluarga.
 - Papar **satu individu** (Focus) lengkap dengan parents/spouses/children.
+- Ada **Tree / Timeline toggle** dalam area peta (map) untuk tukar paparan.
 - Boleh **search**, **pan/zoom**, **fit to screen**, dan **highlight path**.
 - Klik kad untuk buka detail, kemudian **Focus this person** untuk terus ke Branch view.
 - Header baru yang kemas: title + subtitle view, search dominan, segmented control, dan overflow menu.
@@ -15,12 +16,12 @@ Website ini ialah **Family Tree Viewer** untuk paparkan salasilah keluarga dalam
 1. **All Families (Forest)**
    - Cari semua root (tiada parents).
    - Semua root dipaparkan dalam satu kanvas.
-   - Layout kiri → kanan, dengan connector line.
+   - Layout kiri -> kanan, dengan connector line.
    - Depth boleh pilih: 1 / 2 / 3 / All.
 
 2. **Branch**
    - Fokus pada satu root sahaja.
-   - Layout kiri → kanan, connector line jelas.
+   - Layout kiri -> kanan, connector line jelas.
    - Depth boleh pilih dan setiap node boleh collapse/expand.
 
 3. **Focus**
@@ -28,18 +29,23 @@ Website ini ialah **Family Tree Viewer** untuk paparkan salasilah keluarga dalam
    - Parents (atas), Spouses (tepi), Children (bawah).
    - Sesuai untuk review detail individu.
 
+4. **Tree / Timeline (dalam map)**
+   - Tekan butang **Tree** untuk paparan pokok keluarga.
+   - Tekan butang **Timeline** untuk senarai tarikh lahir mengikut masa.
+
 ## Cara guna
-- **Klik kad** → buka drawer detail.
-- Dalam drawer, klik **Focus this person** → pindah ke Branch view.
-- **Search** → lompat ke orang tersebut + highlight path.
+- **Klik kad** -> buka drawer detail.
+- Dalam drawer, klik **Focus this person** -> pindah ke Branch view.
+- **Search** -> lompat ke orang tersebut + highlight path.
 - **Pan/zoom**: drag untuk pan, scroll untuk zoom.
 - **Fit**: auto zoom supaya semua node yang dirender muat dalam skrin.
-- **More menu**: Timeline, Export (PNG/PDF), Guide, Settings.
+- **Tree / Timeline**: tukar paparan dalam map area.
+- **More menu**: Export (PNG/PDF), Guide, Settings.
 
 ## Header / Topbar
 - **Left**: Tajuk aplikasi + subtitle ikut view semasa.
 - **Center**: Search + segmented view control.
-- **Right**: Fit/Center/Reset + overflow menu “More ⋯”.
+- **Right**: Fit/Center/Reset + overflow menu "More...".
 - Responsive:
   - `>=1024px`: semua elemen penuh.
   - `<1024px`: subtitle hilang, Center/Reset masuk overflow.
