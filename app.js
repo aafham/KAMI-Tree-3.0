@@ -35,6 +35,11 @@
   const branchModeBtn = el("branchModeBtn");
   const branchControls = fullTreeView.querySelector(".branch-controls");
   const depthControls = fullTreeView.querySelector(".generation-controls");
+  const moreBtn = el("moreBtn");
+  const moreMenu = el("moreMenu");
+  const exportMenu = el("exportMenu");
+  const searchBackdrop = el("searchBackdrop");
+  const viewSubtitle = el("viewSubtitle");
   const drawer = el("detailDrawer");
   const drawerContent = el("drawerContent");
   const drawerTitle = el("drawerTitle");
@@ -183,9 +188,9 @@
       focusBtn.classList.add("active");
       forestModeBtn.classList.remove("active");
       branchModeBtn.classList.remove("active");
-      focusBtn.setAttribute("aria-pressed", "true");
-      forestModeBtn.setAttribute("aria-pressed", "false");
-      branchModeBtn.setAttribute("aria-pressed", "false");
+      focusBtn.setAttribute("aria-selected", "true");
+      forestModeBtn.setAttribute("aria-selected", "false");
+      branchModeBtn.setAttribute("aria-selected", "false");
     } else {
       focusView.hidden = true;
       fullTreeView.hidden = false;
@@ -193,15 +198,15 @@
       if (view === "forest") {
         forestModeBtn.classList.add("active");
         branchModeBtn.classList.remove("active");
-        forestModeBtn.setAttribute("aria-pressed", "true");
-        branchModeBtn.setAttribute("aria-pressed", "false");
+        forestModeBtn.setAttribute("aria-selected", "true");
+        branchModeBtn.setAttribute("aria-selected", "false");
       } else {
         forestModeBtn.classList.remove("active");
         branchModeBtn.classList.add("active");
-        forestModeBtn.setAttribute("aria-pressed", "false");
-        branchModeBtn.setAttribute("aria-pressed", "true");
+        forestModeBtn.setAttribute("aria-selected", "false");
+        branchModeBtn.setAttribute("aria-selected", "true");
       }
-      focusBtn.setAttribute("aria-pressed", "false");
+      focusBtn.setAttribute("aria-selected", "false");
     }
 
     const isBranch = view === "branch";
@@ -211,6 +216,13 @@
     if (isBranch && state.fullTree.depth === "all") {
       autoCollapseDeep(state.rootId, 2);
     }
+    updateViewSubtitle(view);
+  }
+
+  function updateViewSubtitle(view) {
+    if (!viewSubtitle) return;
+    const label = view === "forest" ? "All Families" : view === "branch" ? "Branch" : "Focus";
+    viewSubtitle.textContent = label;
   }
 
   function setStageAnchor(view) {
@@ -911,9 +923,40 @@
     document.body.style.scrollBehavior = state.settings.reduceMotion ? "auto" : "smooth";
   }
 
+  function openSearch() {
+    document.body.classList.add("search-open");
+    searchBackdrop.classList.remove("hidden");
+    searchInput.focus();
+  }
+
+  function closeSearch() {
+    document.body.classList.remove("search-open");
+    searchBackdrop.classList.add("hidden");
+    searchResults.classList.remove("active");
+  }
+
+  function toggleMoreMenu() {
+    const isOpen = !moreMenu.hidden;
+    moreMenu.hidden = isOpen;
+    moreBtn.setAttribute("aria-expanded", (!isOpen).toString());
+    if (isOpen) exportMenu.hidden = true;
+  }
+
+  function toggleExportMenu() {
+    const isOpen = !exportMenu.hidden;
+    exportMenu.hidden = isOpen;
+    const btn = document.querySelector('[data-action="export-toggle"]');
+    if (btn) btn.setAttribute("aria-expanded", (!isOpen).toString());
+  }
+
   // Event delegation
   document.addEventListener("click", (e) => {
     const target = e.target;
+    if (!target.closest(".more") && !moreMenu.hidden) {
+      moreMenu.hidden = true;
+      moreBtn.setAttribute("aria-expanded", "false");
+      exportMenu.hidden = true;
+    }
     const card = target.closest(".node-card");
     if (card) {
       const id = card.dataset.personId;
@@ -973,6 +1016,18 @@
         break;
       case "fit":
         fitToScreen();
+        break;
+      case "more-toggle":
+        toggleMoreMenu();
+        break;
+      case "export-toggle":
+        toggleExportMenu();
+        break;
+      case "search-open":
+        openSearch();
+        break;
+      case "search-close":
+        closeSearch();
         break;
       case "settings":
         settingsModal.classList.add("active");
@@ -1143,12 +1198,16 @@
     }
     if (e.key === "Escape") {
       if (state.drawerOpen) closeDrawer();
+      closeSearch();
       settingsModal.classList.remove("active");
       settingsModal.setAttribute("aria-hidden", "true");
       helpModal.classList.remove("active");
       helpModal.setAttribute("aria-hidden", "true");
       timelineModal.classList.remove("active");
       timelineModal.setAttribute("aria-hidden", "true");
+      moreMenu.hidden = true;
+      exportMenu.hidden = true;
+      moreBtn.setAttribute("aria-expanded", "false");
     }
     if (e.key.toLowerCase() === "c") {
       centerOn(state.selectedId || state.rootId);

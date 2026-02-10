@@ -9,6 +9,7 @@ Website ini ialah **Family Tree Viewer** untuk paparkan salasilah keluarga dalam
 - Papar **satu individu** (Focus) lengkap dengan parents/spouses/children.
 - Boleh **search**, **pan/zoom**, **fit to screen**, dan **highlight path**.
 - Klik kad untuk buka detail, kemudian **Focus this person** untuk terus ke Branch view.
+- Header baru yang kemas: title + subtitle view, search dominan, segmented control, dan overflow menu.
 
 ## Mod Paparan
 1. **All Families (Forest)**
@@ -33,6 +34,16 @@ Website ini ialah **Family Tree Viewer** untuk paparkan salasilah keluarga dalam
 - **Search** → lompat ke orang tersebut + highlight path.
 - **Pan/zoom**: drag untuk pan, scroll untuk zoom.
 - **Fit**: auto zoom supaya semua node yang dirender muat dalam skrin.
+- **More menu**: Timeline, Export (PNG/PDF), Guide, Settings.
+
+## Header / Topbar
+- **Left**: Tajuk aplikasi + subtitle ikut view semasa.
+- **Center**: Search + segmented view control.
+- **Right**: Fit/Center/Reset + overflow menu “More ⋯”.
+- Responsive:
+  - `>=1024px`: semua elemen penuh.
+  - `<1024px`: subtitle hilang, Center/Reset masuk overflow.
+  - `<640px`: search jadi icon, segmented pindah ke baris bawah.
 
 ## Data & Struktur
 Fail utama:

@@ -8,33 +8,47 @@
 </head>
 <body>
   <div class="app" id="app">
-    <header class="toolbar" role="banner">
-      <div class="toolbar-left">
+    <header class="topbar" role="banner">
+      <div class="topbar-left">
         <div class="brand">
-          <div class="brand-title" id="familyName">Family Tree</div>
-          <div class="brand-subtitle">Generation View</div>
+          <div class="brand-title" id="familyName">Salasilah Keluarga</div>
+          <div class="brand-subtitle" id="viewSubtitle">All Families</div>
         </div>
-        <div class="search" role="search">
+      </div>
+      <div class="topbar-center">
+        <div id="searchContainer" class="search search-inline" role="search">
           <input id="searchInput" type="search" placeholder="Search people..." aria-label="Search people" autocomplete="off" />
           <div id="searchResults" class="search-results" role="listbox" aria-label="Search results"></div>
         </div>
-        <div class="view-toggle" role="group" aria-label="View toggle">
-          <button id="forestModeBtn" class="btn active" aria-pressed="true">All Families</button>
-          <button id="branchModeBtn" class="btn" aria-pressed="false">Branch</button>
-          <button id="focusModeBtn" class="btn" aria-pressed="false">Focus</button>
+        <button class="icon-btn search-trigger" data-action="search-open" aria-label="Open search">Search</button>
+        <div class="segmented" role="tablist" aria-label="View switch">
+          <button id="forestModeBtn" class="seg-btn active" role="tab" aria-selected="true" data-view="forest">All Families</button>
+          <button id="branchModeBtn" class="seg-btn" role="tab" aria-selected="false" data-view="branch">Branch</button>
+          <button id="focusModeBtn" class="seg-btn" role="tab" aria-selected="false" data-view="focus">Focus</button>
         </div>
       </div>
-      <div class="toolbar-right">
-        <button id="centerBtn" class="btn" data-action="center">Center</button>
-        <button id="resetBtn" class="btn" data-action="reset">Reset</button>
-        <button id="fitBtn" class="btn" data-action="fit">Fit</button>
-        <button id="timelineBtn" class="btn" data-action="timeline">Timeline</button>
-        <button id="exportPngBtn" class="btn" data-action="export-png">Export PNG</button>
-        <button id="exportPdfBtn" class="btn" data-action="export-pdf">Export PDF</button>
-        <button id="helpBtn" class="btn" data-action="help">Guide</button>
-        <button id="settingsBtn" class="btn" data-action="settings">Settings</button>
+      <div class="topbar-right">
+        <button id="fitBtn" class="btn primary" data-action="fit">Fit</button>
+        <button id="centerBtn" class="btn secondary" data-action="center">Center</button>
+        <button id="resetBtn" class="btn secondary" data-action="reset">Reset</button>
+        <div class="more">
+          <button id="moreBtn" class="btn" data-action="more-toggle" aria-expanded="false" aria-haspopup="true">More ⋯</button>
+          <div id="moreMenu" class="menu" role="menu" aria-label="More menu" hidden>
+            <button class="menu-item" role="menuitem" data-action="timeline">Timeline</button>
+            <div class="menu-group">
+              <button class="menu-item" role="menuitem" data-action="export-toggle" aria-expanded="false">Export ▾</button>
+              <div id="exportMenu" class="submenu" hidden>
+                <button class="menu-item" role="menuitem" data-action="export-png">Export PNG</button>
+                <button class="menu-item" role="menuitem" data-action="export-pdf">Export PDF</button>
+              </div>
+            </div>
+            <button class="menu-item" role="menuitem" data-action="help">Guide</button>
+            <button class="menu-item" role="menuitem" data-action="settings">Settings</button>
+          </div>
+        </div>
       </div>
     </header>
+    <div id="searchBackdrop" class="search-backdrop hidden" data-action="search-close"></div>
 
     <main class="content" role="main">
       <section id="focusView" class="view focus-view" aria-label="Focus view"></section>
