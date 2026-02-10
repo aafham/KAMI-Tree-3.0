@@ -942,6 +942,12 @@
     if (isOpen) exportMenu.hidden = true;
   }
 
+  function closeMoreMenu() {
+    moreMenu.hidden = true;
+    exportMenu.hidden = true;
+    moreBtn.setAttribute("aria-expanded", "false");
+  }
+
   function toggleExportMenu() {
     const isOpen = !exportMenu.hidden;
     exportMenu.hidden = isOpen;
@@ -953,9 +959,7 @@
   document.addEventListener("click", (e) => {
     const target = e.target;
     if (!target.closest(".more") && !moreMenu.hidden) {
-      moreMenu.hidden = true;
-      moreBtn.setAttribute("aria-expanded", "false");
-      exportMenu.hidden = true;
+      closeMoreMenu();
     }
     const card = target.closest(".node-card");
     if (card) {
@@ -1032,15 +1036,18 @@
       case "settings":
         settingsModal.classList.add("active");
         settingsModal.setAttribute("aria-hidden", "false");
+        closeMoreMenu();
         break;
       case "timeline":
         renderTimeline();
         timelineModal.classList.add("active");
         timelineModal.setAttribute("aria-hidden", "false");
+        closeMoreMenu();
         break;
       case "help":
         helpModal.classList.add("active");
         helpModal.setAttribute("aria-hidden", "false");
+        closeMoreMenu();
         break;
       case "settings-close":
         settingsModal.classList.remove("active");
@@ -1065,9 +1072,11 @@
         } else {
           alert("Export PNG not available.");
         }
+        closeMoreMenu();
         break;
       case "export-pdf":
         window.print();
+        closeMoreMenu();
         break;
       case "drawer-close":
         closeDrawer();
@@ -1205,9 +1214,7 @@
       helpModal.setAttribute("aria-hidden", "true");
       timelineModal.classList.remove("active");
       timelineModal.setAttribute("aria-hidden", "true");
-      moreMenu.hidden = true;
-      exportMenu.hidden = true;
-      moreBtn.setAttribute("aria-expanded", "false");
+      closeMoreMenu();
     }
     if (e.key.toLowerCase() === "c") {
       centerOn(state.selectedId || state.rootId);
