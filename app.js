@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   "use strict";
 
   const state = {
@@ -369,16 +369,17 @@
     } else {
       nodeWrap.innerHTML = cardTemplate(person, true);
     }
+
+    const children = getChildren(personId).map(id => peopleById.get(id)).filter(Boolean);
     if (children.length) {
       const toggleBtn = document.createElement("button");
       toggleBtn.className = "node-toggle";
       toggleBtn.setAttribute("data-toggle-node", personId);
-      toggleBtn.textContent = state.fullTree.collapsed.has(personId) ? "+" : "−";
+      toggleBtn.textContent = state.fullTree.collapsed.has(personId) ? "+" : "-";
       nodeWrap.appendChild(toggleBtn);
     }
     node.appendChild(nodeWrap);
 
-    const children = getChildren(personId).map(id => peopleById.get(id)).filter(Boolean);
     if (!children.length) return node;
 
     const branchOnly = state.view === "branch" && state.fullTree.branchOnly && personId !== state.selectedId;
@@ -872,3 +873,4 @@
     .then(initData)
     .catch(() => initData({ people: [] }));
 })();
+
